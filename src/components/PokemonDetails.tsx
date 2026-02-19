@@ -5,6 +5,7 @@ import { Pokemon } from "../models/Pokemon";
 import Utils from "../Utils";
 import Color from "color";
 
+// TODO: add to utils, don't keep it here
 const TYPE_COLORS: Record<string, string> = {
   normal: "#A8A77A",
   fire: "#EE8130",
