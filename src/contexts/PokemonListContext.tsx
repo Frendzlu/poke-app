@@ -40,6 +40,7 @@ export function PokemonListProvider({
   const fetchMore = useCallback(() => {
     if (isFetchingMore || isRefreshing) return;
     setIsFetchingMore(true);
+    console.log("fetching more pokemon with offset", offsetRef.current);
     FetchService.fetchPokemonList(offsetRef.current)
       .then((data) => {
         setAllPokemon((prev) => [...prev, ...data]);
@@ -50,6 +51,7 @@ export function PokemonListProvider({
   }, [allPokemon.length, isFetchingMore, isRefreshing]);
 
   const onRefresh = useCallback(() => {
+    // TODO: fix this logic - should not remove the existing pokemon
     setIsRefreshing(true);
     FetchService.fetchPokemonList(0)
       .then((data) => setAllPokemon(data))
