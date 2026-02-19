@@ -41,7 +41,7 @@ export default class FetchService {
     static getQueryWithPagination(limit: number, offset: number) {
         return `
             query GetPokemon {
-                pokemon(limit: ${limit}, offset: ${offset}) {
+                pokemon(limit: ${limit}, offset: ${offset}, order_by: {id: asc}, where: {pokemonspecy: {_or: [{is_legendary: {_eq: true}}, {is_mythical: {_eq: true}}, {is_baby: {_eq: true}}]}}) {
                     weight
                     height
                     id
