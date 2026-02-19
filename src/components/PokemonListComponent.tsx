@@ -4,6 +4,7 @@ import { PokemonListItem } from "../models/Pokemon";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
+import Utils from "../Utils";
 
 function PokemonListComponent(props: {
   pokemon: PokemonListItem;
@@ -28,7 +29,11 @@ function PokemonListComponent(props: {
 
           <View style={styles.chipsRow}>
             {props.pokemon.types?.map((t) => (
-              <Chip key={t} style={styles.chip} compact>
+              <Chip
+                key={t}
+                style={[styles.chip, { backgroundColor: Utils.typeToColor(t) }]}
+                compact
+              >
                 {t}
               </Chip>
             ))}

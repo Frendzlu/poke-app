@@ -6,6 +6,7 @@ export default class Utils {
             .join(" ");
     }
 
+    // TODO: make it return 2 colors - background and text color - white on yellow is not visible, black on brown the same
     static typeToColor(type: string): string {
         const TYPE_COLORS: Record<string, string> = {
             normal: "#A8A77A",
