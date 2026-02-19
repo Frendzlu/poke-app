@@ -43,13 +43,15 @@ function PokemonDetails({ pokemon }: { pokemon: Pokemon }) {
 
   return (
     <View style={[styles.content]}>
-      <Surface style={styles.imageSurface} elevation={2}>
-        <Image
-          source={{ uri: pokemon.sprite }}
-          style={styles.image}
-          resizeMode="contain"
-        />
-      </Surface>
+      <View style={styles.imageSurfaceContainer}>
+        <Surface style={styles.imageSurface} elevation={2}>
+          <Image
+            source={{ uri: pokemon.sprite }}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        </Surface>
+      </View>
 
       <Text
         variant="displaySmall"
@@ -111,11 +113,16 @@ const styles = StyleSheet.create({
     gap: 16,
     backgroundColor: "transparent",
   },
-  imageSurface: {
-    borderRadius: 24,
-    overflow: "hidden",
+  imageSurfaceContainer: {
     width: "90%",
     height: "90%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imageSurface: {
+    borderRadius: 24,
+    width: "100%",
+    height: "100%",
     backgroundColor: "rgba(255,255,255,0.5)",
     alignItems: "center",
     justifyContent: "center",
