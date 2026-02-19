@@ -18,10 +18,8 @@ function BottomSheetWrapper(props: {
   children: React.ReactNode;
   tintColor: string;
 }) {
-  console.log("Full Props Object:", props);
   const sheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["5%", "45%", "60%", "90%"], []);
-  console.log(props.tintColor);
   return (
     <BottomSheet
       ref={sheetRef}
