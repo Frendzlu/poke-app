@@ -22,7 +22,14 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.anonymous.pokeapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,9 +38,9 @@
       [
         "expo-maps",
         {
-            "requestLocationPermission": true,
-            "locationPermission": "Allow $(PRODUCT_NAME) to use your location"
-          }
+          "requestLocationPermission": true,
+          "locationPermission": "Allow $(PRODUCT_NAME) to use your location"
+        }
       ]
     ]
   }

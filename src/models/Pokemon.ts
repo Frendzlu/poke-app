@@ -37,7 +37,6 @@ export class Pokemon {
         }
         this.sprite = obj.pokemonsprites[0].sprites.other["official-artwork"].front_default
         this.types = obj.pokemontypes.map((type: any) => type.type.name)
-        console.log(this)
     }
 
     toListProps(): PokemonListItem {
