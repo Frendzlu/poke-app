@@ -1,25 +1,157 @@
 import { StyleSheet, Platform, Text, View } from "react-native";
-import { AppleMaps, GoogleMaps } from "expo-maps";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { AppleMaps, Coordinates, GoogleMaps } from "expo-maps";
+import ConfirmMarkerDialog from "../components/ConfirmMarkerDialog";
+import React, { useMemo, useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { usePokemonList } from "../contexts/PokemonListContext";
+import Utils from "../Utils";
+import { Image, ImageRef } from "expo-image";
+import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
+import { AppleMapsAnnotation } from "expo-maps/build/apple/AppleMaps.types";
+
+const MARKERS_KEY = "markers";
+export interface Marker {
+  lat?: number;
+  lon?: number;
+  pokemonId: number;
+}
 
 function MapTab() {
   if (Platform.OS !== "ios" && Platform.OS !== "android") {
     return <Text>Maps are only available on Android and iOS</Text>;
   }
-  const longPressGesture = Gesture.LongPress()
-    .minDuration(300)
-    .onEnd((event) => {
-      // Logic to run when the long press is triggered
-      console.log(`Long Pressed at: ${event.x}, ${event.y}`);
-    })
-    .runOnJS(true);
+
+  const { allPokemon } = usePokemonList();
+  const favoritePokemonId = useFavoriteContext().favoritePokemonId;
+
+  const [visible, setVisible] = React.useState(false);
+  const [markers, setMarkers] = React.useState<Marker[]>([]);
+  const [selectedCoordinates, setSelectedCoordinates] =
+    React.useState<Coordinates | null>(null);
+  const [spriteRefs, setSpriteRefs] = useState<Record<number, ImageRef>>({});
+
+  useEffect(() => {
+    async function loadMarkers() {
+      const cachedData = await AsyncStorage.getItem(MARKERS_KEY);
+
+      if (cachedData) {
+        setMarkers(JSON.parse(cachedData));
+      }
+    }
+    loadMarkers();
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem(MARKERS_KEY, JSON.stringify(markers));
+  }, [markers]);
+
+  // Load sprite images for all markers' pokemon
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSprites() {
+      const pokemonIds = [
+        ...new Set(
+          markers
+            .map((m) => m.pokemonId)
+            .filter((id) => allPokemon[id] && !spriteRefs[id]),
+        ),
+      ];
+
+      if (pokemonIds.length === 0) return;
+
+      const newRefs: Record<number, ImageRef> = {};
+      await Promise.all(
+        pokemonIds.map(async (id) => {
+          try {
+            const ref = await Image.loadAsync(allPokemon[id].sprite, {
+              maxWidth: 50,
+              maxHeight: 50,
+            });
+            if (!cancelled) {
+              newRefs[id] = ref;
+            }
+          } catch (e) {
+            console.warn(`Failed to load sprite for pokemon ${id}:`, e);
+          }
+        }),
+      );
+
+      if (!cancelled && Object.keys(newRefs).length > 0) {
+        setSpriteRefs((prev) => ({ ...prev, ...newRefs }));
+      }
+    }
+
+    loadSprites();
+    return () => {
+      cancelled = true;
+    };
+  }, [markers, allPokemon]);
+
+  const { annotations, googleMarkers } = useMemo(() => {
+    console.log("Computing valid markers for map display...");
+    console.log("Current markers:", markers);
+    const result = Utils.returnValidMarkers(markers, allPokemon, spriteRefs);
+    console.log(
+      "Markers with valid Pokemon:",
+      Platform.OS === "ios" ? result.annotations : result.googleMarkers,
+    );
+    return result;
+  }, [markers, allPokemon, spriteRefs]);
+
+  const handleConfirm = () => {
+    console.log(
+      "Marker confirmed! [lat, lon]:",
+      selectedCoordinates?.latitude,
+      selectedCoordinates?.longitude,
+    );
+    setMarkers((prev) => [
+      ...prev,
+      {
+        lat: selectedCoordinates?.latitude,
+        lon: selectedCoordinates?.longitude,
+        pokemonId: favoritePokemonId,
+      },
+    ]);
+    setVisible(false);
+  };
+
+  const handleAnnotationPress = (event: AppleMapsAnnotation) => {
+    console.log("Annotation pressed:", event);
+  };
+
+  const handleMapTouch = (event: { coordinates: Coordinates }) => {
+    console.log(
+      `Map touched at [lat, lon]: ${event.coordinates.latitude}, ${event.coordinates.longitude}`,
+    );
+    setSelectedCoordinates(event.coordinates);
+    setVisible(true);
+  };
   return (
-    <GestureDetector gesture={Gesture.Simultaneous(longPressGesture)}>
+    <View style={{ flex: 1 }}>
       <View style={styles.pressable}>
-        {Platform.OS === "ios" && <AppleMaps.View style={{ flex: 1 }} />}
-        {Platform.OS === "android" && <GoogleMaps.View style={{ flex: 1 }} />}
+        {Platform.OS === "ios" && (
+          <AppleMaps.View
+            style={{ flex: 1 }}
+            onMapLongPress={handleMapTouch}
+            annotations={annotations}
+            onAnnotationClick={handleAnnotationPress}
+          />
+        )}
+        {Platform.OS === "android" && (
+          <GoogleMaps.View
+            style={{ flex: 1 }}
+            onMapLongClick={handleMapTouch}
+            markers={googleMarkers}
+          />
+        )}
       </View>
-    </GestureDetector>
+      <ConfirmMarkerDialog
+        visible={visible}
+        onDismiss={() => setVisible(false)}
+        onConfirm={handleConfirm}
+      />
+    </View>
   );
 }
 

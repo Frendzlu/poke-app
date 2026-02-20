@@ -34,15 +34,17 @@ function PokemonListTab() {
     [],
   );
 
+  const allPokemonList = useMemo(() => Object.values(allPokemon), [allPokemon]);
+
   const selectedPokemon = useMemo(() => {
-    return allPokemon.find((p) => p.id === selectedPokemonId);
+    return selectedPokemonId !== null ? allPokemon[selectedPokemonId] : undefined;
   }, [selectedPokemonId, allPokemon]);
 
   return (
     <SafeAreaView
       style={{ alignItems: "center", justifyContent: "center", flex: 1 }}
     >
-      <Text>Total Pokemon: {allPokemon?.length}</Text>
+      <Text>Total Pokemon: {Object.keys(allPokemon).length}</Text>
       <Button
         mode="contained"
         buttonColor="red"
@@ -54,7 +56,7 @@ function PokemonListTab() {
       <FlatList
         style={{ width: "90%" }}
         contentContainerStyle={{ flexGrow: 1 }}
-        data={allPokemon}
+        data={allPokemonList}
         keyExtractor={(item: Pokemon) => item.id.toString()}
         renderItem={renderItem}
         refreshControl={

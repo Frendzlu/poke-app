@@ -9,7 +9,7 @@ function FavoritePokemonTab() {
   const { favoritePokemonId, toggleFavorite } = useFavoriteContext();
   const allPokemon = usePokemonList().allPokemon;
   const favoritePokemon = useMemo(
-    () => allPokemon.find((p) => p.id === favoritePokemonId),
+    () => (favoritePokemonId !== -1 ? allPokemon[favoritePokemonId] : undefined),
     [allPokemon, favoritePokemonId],
   );
 

@@ -13,7 +13,7 @@ export default class FetchService {
                 const cachedData = await AsyncStorage.getItem(CACHE_KEY);
                 if (cachedData) {
                     console.log("Using cached Pokemon list");
-                    return JSON.parse(cachedData).map((poke: JSON) => new Pokemon(poke));
+                    return JSON.parse(cachedData).map((poke: any) => new Pokemon(poke));
                 }
             }
             const response = await fetch("https://graphql.pokeapi.co/v1beta2", {
@@ -27,7 +27,7 @@ export default class FetchService {
             if (offset === 0) {
                 await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(json.data.pokemon));
             }
-            return json.data.pokemon.map((poke: JSON) => new Pokemon(poke));
+            return json.data.pokemon.map((poke: any) => new Pokemon(poke));
         } catch (error) {
             console.error("Error fetching Pokemon list:", error);
             throw error;

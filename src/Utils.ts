@@ -1,3 +1,13 @@
+import { Marker } from "./tabs/MapTab";
+import { Pokemon } from "./models/Pokemon";
+import { PokemonDictionary } from "./contexts/PokemonListContext";
+import { Platform } from "react-native";
+import { AppleMapsAnnotation } from "expo-maps/build/apple/AppleMaps.types";
+import { GoogleMapsMarker } from "expo-maps/build/google/GoogleMaps.types";
+import { ImageRef } from "expo-image";
+
+export type PlatformMarker = AppleMapsAnnotation | GoogleMapsMarker;
+
 export default class Utils {
     static kebabToTitleCase(str: string) {
         return str
@@ -28,6 +38,49 @@ export default class Utils {
             steel: "#B7B7CE",
             fairy: "#D685AD",
         };
-    return TYPE_COLORS[type] ?? "#888";
-  }
+        return TYPE_COLORS[type] ?? "#888";
+    }
+
+    static returnValidMarkers(
+        markers: Marker[],
+        allPokemon: PokemonDictionary,
+        spriteRefs: Record<number, ImageRef>
+    ): { annotations: AppleMapsAnnotation[]; googleMarkers: GoogleMapsMarker[] } {
+        const annotations: AppleMapsAnnotation[] = [];
+        const googleMarkers: GoogleMapsMarker[] = [];
+
+        for (const marker of markers) {
+            if (marker.lat == null || marker.lon == null) continue;
+            const pokemon = allPokemon[marker.pokemonId];
+            if (!pokemon) continue;
+
+            const coords = {
+                latitude: marker.lat,
+                longitude: marker.lon,
+            };
+            const spriteRef = spriteRefs[pokemon.id];
+
+            if (Platform.OS === "ios") {
+                annotations.push({
+                    coordinates: coords,
+                    title: pokemon.name,
+                    text: spriteRef ? "" : `#${pokemon.id}`,
+                    backgroundColor: pokemon.pokemonSpecies.color,
+                    textColor: "white",
+                    ...(spriteRef ? { icon: spriteRef } : {}),
+                });
+            } else {
+                googleMarkers.push({
+                    id: `pokemon-${pokemon.id}-${marker.lat}-${marker.lon}`,
+                    coordinates: coords,
+                    title: pokemon.name,
+                    snippet: `#${pokemon.id} - ${pokemon.types.join(", ")}`,
+                    showCallout: true,
+                    ...(spriteRef ? { icon: spriteRef } : {}),
+                });
+            }
+        }
+
+        return { annotations, googleMarkers };
+    }
 }

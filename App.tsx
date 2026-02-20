@@ -2,7 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { FavoritePokemonProvider } from "./src/contexts/FavoritePokemonContext";
 import { PokemonListProvider } from "./src/contexts/PokemonListContext";
-import { BottomNavigation, PaperProvider } from "react-native-paper";
+import { BottomNavigation, PaperProvider, Portal } from "react-native-paper";
 import PokemonListTab from "./src/tabs/PokemonListTab";
 import FavoritePokemonTab from "./src/tabs/FavoritePokemonTab";
 import CameraTab from "./src/tabs/CameraTab";
@@ -64,20 +64,22 @@ export default function App() {
   const [index, setIndex] = React.useState(0);
 
   return (
-    <GestureHandlerRootView>
-      <SafeAreaProvider>
-        <PaperProvider>
-          <PokemonListProvider>
-            <FavoritePokemonProvider>
-              <BottomNavigation
-                navigationState={{ index, routes }}
-                onIndexChange={setIndex}
-                renderScene={renderScene}
-              />
-            </FavoritePokemonProvider>
-          </PokemonListProvider>
-        </PaperProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <Portal.Host>
+      <GestureHandlerRootView>
+        <SafeAreaProvider>
+          <PaperProvider>
+            <PokemonListProvider>
+              <FavoritePokemonProvider>
+                <BottomNavigation
+                  navigationState={{ index, routes }}
+                  onIndexChange={setIndex}
+                  renderScene={renderScene}
+                />
+              </FavoritePokemonProvider>
+            </PokemonListProvider>
+          </PaperProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </Portal.Host>
   );
 }

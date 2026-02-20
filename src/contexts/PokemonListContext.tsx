@@ -9,8 +9,10 @@ import React, {
 import FetchService from "../services/FetchService";
 import { Pokemon } from "../models/Pokemon";
 
+export type PokemonDictionary = Record<number, Pokemon>;
+
 type PokemonListContextType = {
-  allPokemon: Pokemon[];
+  allPokemon: PokemonDictionary;
   isFetchingMore: boolean;
   isRefreshing: boolean;
   fetchMore: () => void;
@@ -19,7 +21,7 @@ type PokemonListContextType = {
 };
 
 const PokemonListContext = createContext<PokemonListContextType>({
-  allPokemon: [],
+  allPokemon: {},
   isFetchingMore: false,
   isRefreshing: false,
   fetchMore: () => {},
@@ -32,7 +34,7 @@ export function PokemonListProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [allPokemon, setAllPokemon] = useState<Pokemon[]>([]);
+  const [allPokemon, setAllPokemon] = useState<PokemonDictionary>({});
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const offsetRef = useRef(0); // TODO: Make it so that the offsetRef prevents multiple simultaneous fetches instead of relying on the isFetchingMore and isRefreshing state variables, which can
@@ -43,18 +45,30 @@ export function PokemonListProvider({
     console.log("fetching more pokemon with offset", offsetRef.current);
     FetchService.fetchPokemonList(offsetRef.current)
       .then((data) => {
-        setAllPokemon((prev) => [...prev, ...data]);
+        setAllPokemon((prev) => {
+          const next = { ...prev };
+          data.forEach((p: Pokemon) => {
+            next[p.id] = p;
+          });
+          return next;
+        });
         offsetRef.current += data.length;
       })
       .catch(console.error)
       .finally(() => setIsFetchingMore(false));
-  }, [allPokemon.length, isFetchingMore, isRefreshing]);
+  }, [Object.keys(allPokemon).length, isFetchingMore, isRefreshing]);
 
   const onRefresh = useCallback(() => {
     // TODO: fix this logic - should not remove the existing pokemon
     setIsRefreshing(true);
     FetchService.fetchPokemonList(0)
-      .then((data) => setAllPokemon(data))
+      .then((data) => {
+        const dict: PokemonDictionary = {};
+        data.forEach((p: Pokemon) => {
+          dict[p.id] = p;
+        });
+        setAllPokemon(dict);
+      })
       .catch(console.error)
       .finally(() => setIsRefreshing(false));
   }, []);
@@ -62,7 +76,7 @@ export function PokemonListProvider({
   const deletePokemon = useCallback(() => {
     FetchService.clearCache();
     offsetRef.current = 0;
-    setAllPokemon([]);
+    setAllPokemon({});
   }, []);
 
   return (
