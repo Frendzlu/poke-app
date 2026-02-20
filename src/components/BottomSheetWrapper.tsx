@@ -17,14 +17,14 @@ const BlurBg = ({ tintColor }: { tintColor: string }) => (
 function BottomSheetWrapper(props: {
   children: React.ReactNode;
   tintColor: string;
+  snapPoints?: (string | number)[];
 }) {
   const sheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ["5%", "45%", "60%", "90%"], []);
   return (
     <BottomSheet
       ref={sheetRef}
       index={1}
-      snapPoints={snapPoints}
+      snapPoints={props.snapPoints}
       enableDynamicSizing={true}
       backgroundComponent={() => (
         <BlurBg tintColor={Color(props.tintColor).hex()} />

@@ -8,6 +8,10 @@ import Utils from "../Utils";
 import { Image, ImageRef } from "expo-image";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
 import { AppleMapsAnnotation } from "expo-maps/build/apple/AppleMaps.types";
+import BottomSheet from "@gorhom/bottom-sheet";
+import BottomSheetWrapper from "../components/BottomSheetWrapper";
+import PokemonDetailsMap from "../components/PokemonDetailsMap";
+import FetchService from "../services/FetchService";
 
 const MARKERS_KEY = "markers";
 export interface Marker {
@@ -21,8 +25,13 @@ function MapTab() {
     return <Text>Maps are only available on Android and iOS</Text>;
   }
 
-  const { allPokemon } = usePokemonList();
+  const { allPokemon, fetchById } = usePokemonList();
   const favoritePokemonId = useFavoriteContext().favoritePokemonId;
+  useEffect(() => {
+    if (favoritePokemonId !== -1 && !allPokemon[favoritePokemonId]) {
+      fetchById(favoritePokemonId);
+    }
+  }, [favoritePokemonId, allPokemon]);
 
   const [visible, setVisible] = React.useState(false);
   const [markers, setMarkers] = React.useState<Marker[]>([]);
@@ -116,6 +125,11 @@ function MapTab() {
     setVisible(false);
   };
 
+  const favoritePokemonOccurrences = useMemo(() => {
+    if (favoritePokemonId === -1) return 0;
+    return markers.filter((m) => m.pokemonId === favoritePokemonId).length;
+  }, [markers, favoritePokemonId]);
+
   const handleAnnotationPress = (event: AppleMapsAnnotation) => {
     console.log("Annotation pressed:", event);
   };
@@ -151,6 +165,20 @@ function MapTab() {
         onDismiss={() => setVisible(false)}
         onConfirm={handleConfirm}
       />
+      ()
+      <BottomSheetWrapper
+        tintColor={
+          favoritePokemonId !== -1
+            ? allPokemon[favoritePokemonId]?.pokemonSpecies.color || "grey"
+            : "grey"
+        }
+        snapPoints={["5%", "45%", "65%", "90%"]}
+      >
+        <PokemonDetailsMap
+          pokemon={allPokemon[favoritePokemonId]}
+          pokemonMapOccurrences={favoritePokemonOccurrences}
+        />
+      </BottomSheetWrapper>
     </View>
   );
 }
