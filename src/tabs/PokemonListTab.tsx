@@ -37,7 +37,9 @@ function PokemonListTab() {
   const allPokemonList = useMemo(() => Object.values(allPokemon), [allPokemon]);
 
   const selectedPokemon = useMemo(() => {
-    return selectedPokemonId !== null ? allPokemon[selectedPokemonId] : undefined;
+    return selectedPokemonId !== null
+      ? allPokemon[selectedPokemonId]
+      : undefined;
   }, [selectedPokemonId, allPokemon]);
 
   return (

@@ -4,12 +4,16 @@ import PokemonDetails from "../components/PokemonDetails";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
 import { useMemo } from "react";
 import { usePokemonList } from "../contexts/PokemonListContext";
+import { useNavigation } from "@react-navigation/native";
+import { RootNavigationProp } from "../navigation/types";
 
 function FavoritePokemonTab() {
   const { favoritePokemonId, toggleFavorite } = useFavoriteContext();
   const allPokemon = usePokemonList().allPokemon;
+  const navigation = useNavigation<RootNavigationProp>();
   const favoritePokemon = useMemo(
-    () => (favoritePokemonId !== -1 ? allPokemon[favoritePokemonId] : undefined),
+    () =>
+      favoritePokemonId !== -1 ? allPokemon[favoritePokemonId] : undefined,
     [allPokemon, favoritePokemonId],
   );
 
@@ -29,8 +33,14 @@ function FavoritePokemonTab() {
       <FAB
         icon="heart-remove"
         label="Unfavorite"
-        style={styles.fab}
+        style={styles.fabDelete}
         onPress={() => toggleFavorite(favoritePokemonId)}
+      />
+      <FAB
+        icon="camera"
+        label="Take a picture"
+        style={styles.fabCamera}
+        onPress={() => navigation.navigate("Camera")}
       />
     </View>
   );
@@ -49,9 +59,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  fab: {
+  fabDelete: {
     position: "absolute",
     right: 16,
+    bottom: 24,
+  },
+  fabCamera: {
+    position: "absolute",
+    left: 16,
     bottom: 24,
   },
 });
