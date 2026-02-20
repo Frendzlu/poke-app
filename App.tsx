@@ -12,32 +12,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./src/navigation/types";
 import CameraScreen from "./src/screens/CameraScreen";
 import TabsScreen from "./src/screens/TabsScreen";
-
-// Retrieve the GraphQL schema (for development purposes)
-// {
-//   __type(name: "query_root") {
-//     name
-//     fields {
-//       name
-//       type {
-//         name
-//         kind
-//       }
-//     }
-//   }
-// }
-
-// Full schema
-// {
-//   __schema {
-//     types {
-//       name
-//       fields {
-//         name
-//       }
-//     }
-//   }
-// }
 import { StorageService } from "./src/services/StorageService";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
