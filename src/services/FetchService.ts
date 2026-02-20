@@ -34,8 +34,63 @@ export default class FetchService {
         }
     }
 
+    static async fetchPokemonById(id: number) {
+        try {
+            const response = await fetch("https://graphql.pokeapi.co/v1beta2", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ query: this.getQueryWithId(id) }),
+            });
+            console.log(`query: ${this.getQueryWithId(id)}`);
+            const json = await response.json();
+            console.log(`Fetched Pokemon with id ${id}:`, json);
+            return new Pokemon(json.data.pokemon[0]);
+        } catch (error) {
+            console.error(`Error fetching Pokemon with id ${id}:`, error);
+            throw error;
+        }
+    }
+
     static async clearCache() {
         await AsyncStorage.removeItem(CACHE_KEY);
+    }
+
+    static getQueryWithId(id: number) {
+        return `
+            query GetPokemon {
+                pokemon(where: {id: {_eq: ${id}}}) {
+                    weight
+                    height
+                    id
+                    name
+                    order
+                pokemonforms {
+                    id
+                    name
+                    form_name
+                    is_mega
+                }
+                pokemonspecy {
+                    pokemoncolor {
+                        name
+                    }
+                    is_baby
+                    is_legendary
+                    is_mythical
+                }
+                pokemonsprites {
+                    sprites
+                }
+                pokemontypes {
+                    type {
+                        name
+                    }
+                }
+            }
+        }
+        `
     }
 
     static getQueryWithPagination(limit: number, offset: number) {

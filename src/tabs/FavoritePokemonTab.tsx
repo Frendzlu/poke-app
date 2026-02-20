@@ -6,21 +6,33 @@ import { useMemo } from "react";
 import { usePokemonList } from "../contexts/PokemonListContext";
 import { useNavigation } from "@react-navigation/native";
 import { RootNavigationProp } from "../navigation/types";
+import FetchService from "../services/FetchService";
 
 function FavoritePokemonTab() {
   const { favoritePokemonId, toggleFavorite } = useFavoriteContext();
-  const allPokemon = usePokemonList().allPokemon;
+  const { allPokemon, fetchById } = usePokemonList();
   const navigation = useNavigation<RootNavigationProp>();
-  const favoritePokemon = useMemo(
-    () =>
-      favoritePokemonId !== -1 ? allPokemon[favoritePokemonId] : undefined,
-    [allPokemon, favoritePokemonId],
-  );
+  const favoritePokemon = useMemo(() => {
+    if (favoritePokemonId === -1) return undefined;
+    if (!allPokemon[favoritePokemonId]) {
+      fetchById(favoritePokemonId);
+      return undefined;
+    }
+    return allPokemon[favoritePokemonId];
+  }, [favoritePokemonId, allPokemon, fetchById]);
 
   if (favoritePokemonId === -1) {
     return (
       <View style={styles.empty}>
         <Text>No favorite Pokemon selected.</Text>
+      </View>
+    );
+  }
+
+  if (!favoritePokemon) {
+    return (
+      <View style={styles.empty}>
+        <Text>Favorite Pokemon not available.</Text>
       </View>
     );
   }

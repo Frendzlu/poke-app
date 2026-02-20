@@ -18,6 +18,7 @@ type PokemonListContextType = {
   fetchMore: () => void;
   onRefresh: () => void;
   deletePokemon: () => void;
+  fetchById: (id: number) => Promise<Pokemon>;
 };
 
 const PokemonListContext = createContext<PokemonListContextType>({
@@ -27,6 +28,7 @@ const PokemonListContext = createContext<PokemonListContextType>({
   fetchMore: () => {},
   onRefresh: () => {},
   deletePokemon: () => {},
+  fetchById: () => Promise.resolve({} as Pokemon),
 });
 
 export function PokemonListProvider({
@@ -58,6 +60,13 @@ export function PokemonListProvider({
       .finally(() => setIsFetchingMore(false));
   }, [Object.keys(allPokemon).length, isFetchingMore, isRefreshing]);
 
+  const fetchById = useCallback((id: number) => {
+    return FetchService.fetchPokemonById(id).then((pokemon) => {
+      setAllPokemon((prev) => ({ ...prev, [pokemon.id]: pokemon }));
+      return pokemon;
+    });
+  }, []);
+
   const onRefresh = useCallback(() => {
     // TODO: fix this logic - should not remove the existing pokemon
     setIsRefreshing(true);
@@ -88,6 +97,7 @@ export function PokemonListProvider({
         fetchMore,
         onRefresh,
         deletePokemon,
+        fetchById,
       }}
     >
       {children}

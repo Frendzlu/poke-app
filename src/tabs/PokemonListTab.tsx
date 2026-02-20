@@ -18,7 +18,6 @@ function PokemonListTab() {
     onRefresh,
     deletePokemon,
   } = usePokemonList();
-  const favoritePokemonId = useFavoriteContext().favoritePokemonId;
 
   const [selectedPokemonId, setSelectedPokemon] = React.useState<number | null>(
     null,
@@ -73,6 +72,7 @@ function PokemonListTab() {
       {selectedPokemon && (
         <BottomSheetWrapper
           tintColor={selectedPokemon.pokemonSpecies?.color || "grey"}
+          snapPoints={["5%", "45%", "65%", "90%"]}
         >
           <PokemonDetails pokemon={selectedPokemon} />
         </BottomSheetWrapper>
