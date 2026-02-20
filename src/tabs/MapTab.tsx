@@ -2,7 +2,6 @@ import { StyleSheet, Platform, Text, View } from "react-native";
 import { AppleMaps, Coordinates, GoogleMaps } from "expo-maps";
 import ConfirmMarkerDialog from "../components/ConfirmMarkerDialog";
 import React, { useMemo, useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { usePokemonList } from "../contexts/PokemonListContext";
 import Utils from "../Utils";
 import { Image, ImageRef } from "expo-image";
@@ -11,27 +10,18 @@ import { AppleMapsAnnotation } from "expo-maps/build/apple/AppleMaps.types";
 import BottomSheet from "@gorhom/bottom-sheet";
 import BottomSheetWrapper from "../components/BottomSheetWrapper";
 import PokemonDetailsMap from "../components/PokemonDetailsMap";
-import FetchService from "../services/FetchService";
+import { StorageService } from "../services/StorageService";
+import { Marker } from "../models/Marker";
 
-const MARKERS_KEY = "markers";
-export interface Marker {
-  lat?: number;
-  lon?: number;
-  pokemonId: number;
-}
+export type { Marker };
 
 function MapTab() {
   if (Platform.OS !== "ios" && Platform.OS !== "android") {
     return <Text>Maps are only available on Android and iOS</Text>;
   }
 
-  const { allPokemon, fetchById } = usePokemonList();
+  const { allPokemon } = usePokemonList();
   const favoritePokemonId = useFavoriteContext().favoritePokemonId;
-  useEffect(() => {
-    if (favoritePokemonId !== -1 && !allPokemon[favoritePokemonId]) {
-      fetchById(favoritePokemonId);
-    }
-  }, [favoritePokemonId, allPokemon]);
 
   const [visible, setVisible] = React.useState(false);
   const [markers, setMarkers] = React.useState<Marker[]>([]);
@@ -41,17 +31,16 @@ function MapTab() {
 
   useEffect(() => {
     async function loadMarkers() {
-      const cachedData = await AsyncStorage.getItem(MARKERS_KEY);
-
-      if (cachedData) {
-        setMarkers(JSON.parse(cachedData));
+      const cachedData = await StorageService.getMarkers();
+      if (cachedData.length > 0) {
+        setMarkers(cachedData);
       }
     }
     loadMarkers();
   }, []);
 
   useEffect(() => {
-    AsyncStorage.setItem(MARKERS_KEY, JSON.stringify(markers));
+    StorageService.setMarkers(markers);
   }, [markers]);
 
   // Load sprite images for all markers' pokemon
@@ -165,7 +154,7 @@ function MapTab() {
         onDismiss={() => setVisible(false)}
         onConfirm={handleConfirm}
       />
-      ()
+      (allPokemon[favoritePokemonId] &&
       <BottomSheetWrapper
         tintColor={
           favoritePokemonId !== -1
@@ -179,6 +168,7 @@ function MapTab() {
           pokemonMapOccurrences={favoritePokemonOccurrences}
         />
       </BottomSheetWrapper>
+      )
     </View>
   );
 }

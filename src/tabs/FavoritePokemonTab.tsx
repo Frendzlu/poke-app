@@ -10,16 +10,12 @@ import FetchService from "../services/FetchService";
 
 function FavoritePokemonTab() {
   const { favoritePokemonId, toggleFavorite } = useFavoriteContext();
-  const { allPokemon, fetchById } = usePokemonList();
+  const { allPokemon } = usePokemonList();
   const navigation = useNavigation<RootNavigationProp>();
   const favoritePokemon = useMemo(() => {
     if (favoritePokemonId === -1) return undefined;
-    if (!allPokemon[favoritePokemonId]) {
-      fetchById(favoritePokemonId);
-      return undefined;
-    }
     return allPokemon[favoritePokemonId];
-  }, [favoritePokemonId, allPokemon, fetchById]);
+  }, [favoritePokemonId, allPokemon]);
 
   if (favoritePokemonId === -1) {
     return (

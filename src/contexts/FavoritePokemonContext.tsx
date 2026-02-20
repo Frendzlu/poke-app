@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { StorageService } from "../services/StorageService";
 
 interface FavoritePokemonContextType {
   favoritePokemonId: number;
@@ -17,8 +18,19 @@ export function FavoritePokemonProvider({
 }) {
   const [favoritePokemonId, setFavoritePokemonId] = useState<number>(-1);
 
+  // Restore persisted favorite on mount
+  useEffect(() => {
+    StorageService.getFavoriteId().then((id) => {
+      if (id !== -1) setFavoritePokemonId(id);
+    });
+  }, []);
+
   const toggleFavorite = useCallback((id: number) => {
-    setFavoritePokemonId((prev) => (prev === id ? -1 : id));
+    setFavoritePokemonId((prev) => {
+      const next = prev === id ? -1 : id;
+      StorageService.setFavoriteId(next);
+      return next;
+    });
   }, []);
 
   return (

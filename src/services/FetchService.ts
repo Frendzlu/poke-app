@@ -1,19 +1,15 @@
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import { Pokemon } from "../models/Pokemon";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const CACHE_KEY = "pokemon_list_cache";
-// TODO: cache favorite pokemon
+import { StorageService } from "./StorageService";
 
 export default class FetchService {
 
     static async fetchPokemonList(offset: number = 0) {
         try {
             if (offset === 0) {
-                const cachedData = await AsyncStorage.getItem(CACHE_KEY);
+                const cachedData = await StorageService.getPokemonCache();
                 if (cachedData) {
                     console.log("Using cached Pokemon list");
-                    return JSON.parse(cachedData).map((poke: any) => new Pokemon(poke));
+                    return cachedData.map((poke: any) => new Pokemon(poke));
                 }
             }
             const response = await fetch("https://graphql.pokeapi.co/v1beta2", {
@@ -25,11 +21,27 @@ export default class FetchService {
             });
             const json = await response.json();
             if (offset === 0) {
-                await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(json.data.pokemon));
+                await StorageService.setPokemonCache(json.data.pokemon);
             }
             return json.data.pokemon.map((poke: any) => new Pokemon(poke));
         } catch (error) {
             console.error("Error fetching Pokemon list:", error);
+            throw error;
+        }
+    }
+
+    static async fetchPokemonByIds(ids: number[]): Promise<Pokemon[]> {
+        if (ids.length === 0) return [];
+        try {
+            const response = await fetch("https://graphql.pokeapi.co/v1beta2", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: this.getQueryWithIds(ids) }),
+            });
+            const json = await response.json();
+            return json.data.pokemon.map((poke: any) => new Pokemon(poke));
+        } catch (error) {
+            console.error(`Error fetching Pokemon with ids ${ids}:`, error);
             throw error;
         }
     }
@@ -54,7 +66,44 @@ export default class FetchService {
     }
 
     static async clearCache() {
-        await AsyncStorage.removeItem(CACHE_KEY);
+        await StorageService.clearPokemonCache();
+    }
+
+    static getQueryWithIds(ids: number[]) {
+        const idList = ids.join(", ");
+        return `
+            query GetPokemon {
+                pokemon(where: {id: {_in: [${idList}]}}) {
+                    weight
+                    height
+                    id
+                    name
+                    order
+                pokemonforms {
+                    id
+                    name
+                    form_name
+                    is_mega
+                }
+                pokemonspecy {
+                    pokemoncolor {
+                        name
+                    }
+                    is_baby
+                    is_legendary
+                    is_mythical
+                }
+                pokemonsprites {
+                    sprites
+                }
+                pokemontypes {
+                    type {
+                        name
+                    }
+                }
+            }
+        }
+        `
     }
 
     static getQueryWithId(id: number) {

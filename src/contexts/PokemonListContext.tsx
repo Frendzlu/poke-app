@@ -2,11 +2,11 @@ import React, {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useRef,
   useState,
 } from "react";
 import FetchService from "../services/FetchService";
+import { StorageService } from "../services/StorageService";
 import { Pokemon } from "../models/Pokemon";
 
 export type PokemonDictionary = Record<number, Pokemon>;
@@ -18,7 +18,7 @@ type PokemonListContextType = {
   fetchMore: () => void;
   onRefresh: () => void;
   deletePokemon: () => void;
-  fetchById: (id: number) => Promise<Pokemon>;
+  ensurePokemonLoaded: (ids: number[]) => Promise<void>;
 };
 
 const PokemonListContext = createContext<PokemonListContextType>({
@@ -28,7 +28,7 @@ const PokemonListContext = createContext<PokemonListContextType>({
   fetchMore: () => {},
   onRefresh: () => {},
   deletePokemon: () => {},
-  fetchById: () => Promise.resolve({} as Pokemon),
+  ensurePokemonLoaded: () => Promise.resolve(),
 });
 
 export function PokemonListProvider({
@@ -39,7 +39,7 @@ export function PokemonListProvider({
   const [allPokemon, setAllPokemon] = useState<PokemonDictionary>({});
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const offsetRef = useRef(0); // TODO: Make it so that the offsetRef prevents multiple simultaneous fetches instead of relying on the isFetchingMore and isRefreshing state variables, which can
+  const offsetRef = useRef(0);
 
   const fetchMore = useCallback(() => {
     if (isFetchingMore || isRefreshing) return;
@@ -60,15 +60,30 @@ export function PokemonListProvider({
       .finally(() => setIsFetchingMore(false));
   }, [Object.keys(allPokemon).length, isFetchingMore, isRefreshing]);
 
-  const fetchById = useCallback((id: number) => {
-    return FetchService.fetchPokemonById(id).then((pokemon) => {
-      setAllPokemon((prev) => ({ ...prev, [pokemon.id]: pokemon }));
-      return pokemon;
+  const ensurePokemonLoaded = useCallback(async (ids: number[]) => {
+    setAllPokemon((prev) => {
+      const missing = ids.filter((id) => !prev[id]);
+      if (missing.length === 0) return prev;
+
+      FetchService.fetchPokemonByIds(missing)
+        .then((fetched) => {
+          setAllPokemon((current) => {
+            const next = { ...current };
+            fetched.forEach((p) => {
+              next[p.id] = p;
+            });
+            return next;
+          });
+        })
+        .catch((e) =>
+          console.error("ensurePokemonLoaded: failed to fetch", missing, e),
+        );
+
+      return prev; // optimistic — don't block render
     });
   }, []);
 
   const onRefresh = useCallback(() => {
-    // TODO: fix this logic - should not remove the existing pokemon
     setIsRefreshing(true);
     FetchService.fetchPokemonList(0)
       .then((data) => {
@@ -83,7 +98,7 @@ export function PokemonListProvider({
   }, []);
 
   const deletePokemon = useCallback(() => {
-    FetchService.clearCache();
+    StorageService.clearPokemonCache();
     offsetRef.current = 0;
     setAllPokemon({});
   }, []);
@@ -97,7 +112,7 @@ export function PokemonListProvider({
         fetchMore,
         onRefresh,
         deletePokemon,
-        fetchById,
+        ensurePokemonLoaded,
       }}
     >
       {children}

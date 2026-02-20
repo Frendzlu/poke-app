@@ -17,13 +17,15 @@ function PokemonDetailsMap({
 
   return (
     <View style={[styles.content]}>
-      <Surface style={styles.imageSurface} elevation={2}>
-        <Image
-          source={{ uri: pokemon.sprite }}
-          style={styles.image}
-          resizeMode="contain"
-        />
-      </Surface>
+      <View style={styles.imageSurfaceContainer}>
+        <Surface style={styles.imageSurface} elevation={2}>
+          <Image
+            source={{ uri: pokemon.sprite }}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        </Surface>
+      </View>
 
       <Text
         variant="displaySmall"
@@ -31,9 +33,12 @@ function PokemonDetailsMap({
       >
         {pokemon.name}
       </Text>
-      <Text variant="bodyMedium" style={{ color: "#888" }}>
-        Seen on map: {pokemonMapOccurrences} time
-        {pokemonMapOccurrences !== 1 ? "s" : ""}
+      <Text
+        variant="bodyMedium"
+        style={{ color: "#666", textAlign: "center", paddingHorizontal: 16 }}
+      >
+        Your favorite Pokemon has been spotted {pokemonMapOccurrences} times on
+        the map!
       </Text>
     </View>
   );
@@ -48,11 +53,16 @@ const styles = StyleSheet.create({
     gap: 16,
     backgroundColor: "transparent",
   },
-  imageSurface: {
-    borderRadius: 24,
-    overflow: "hidden",
+  imageSurfaceContainer: {
     width: "90%",
     height: "90%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imageSurface: {
+    borderRadius: 24,
+    width: "100%",
+    height: "100%",
     backgroundColor: "rgba(255,255,255,0.5)",
     alignItems: "center",
     justifyContent: "center",
