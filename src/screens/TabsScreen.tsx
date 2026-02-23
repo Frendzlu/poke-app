@@ -1,8 +1,8 @@
 import React from "react";
 import { BottomNavigation } from "react-native-paper";
-import FavoritePokemonTab from "../tabs/FavoritePokemonTab";
-import MapTab from "../tabs/MapTab";
-import PokemonListTab from "../tabs/PokemonListTab";
+import FavoritePokemonTab from "../tabs/FavoritePokemon";
+import MapTab from "../tabs/Map";
+import PokemonListTab from "../tabs/PokemonList";
 
 const renderScene = BottomNavigation.SceneMap({
   "poke-list": PokemonListTab,
