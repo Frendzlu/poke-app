@@ -61,6 +61,12 @@ export default {
           ios: {
             deploymentTarget: "16.0",
           },
+          android: {
+            compileSdkVersion: 35,
+            targetSdkVersion: 34,
+            buildToolsVersion: "34.0.0",
+            minSdkVersion: 34,
+          },
         },
       ],
     ],
