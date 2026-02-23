@@ -17,7 +17,7 @@ function BottomSheetWrapper(props: {
   tintColor: string;
 }) {
   const sheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ["45%", "60%", "90%"], []);
+  const snapPoints = ["45%", "60%", "90%"];
 
   const [displayChildren, setDisplayChildren] = useState(props.children);
   const [displayTintColor, setDisplayTintColor] = useState(props.tintColor);

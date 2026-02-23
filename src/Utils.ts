@@ -1,3 +1,5 @@
+import { Pokemon } from "./models/Pokemon";
+
 export default class Utils {
     static kebabToTitleCase(str: string) {
         return str

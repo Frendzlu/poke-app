@@ -18,11 +18,11 @@ function PokemonListTab() {
     onRefresh,
     deletePokemon,
   } = usePokemonList();
-  const favoritePokemonId = useFavoriteContext().favoritePokemonId;
+  const { favoritePokemonId } = useFavoriteContext();
 
-  const [selectedPokemonId, setSelectedPokemon] = React.useState<number | null>(
-    null,
-  );
+  const [selectedPokemonId, setSelectedPokemon] = React.useState<
+    number | undefined
+  >(undefined);
 
   const renderItem = useCallback(
     ({ item }: { item: Pokemon }) => (
