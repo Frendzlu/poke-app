@@ -1,13 +1,13 @@
 import React from "react";
 import { BottomNavigation } from "react-native-paper";
 import FavoritePokemonTab from "../tabs/FavoritePokemon";
-import MapTab from "../tabs/Map";
-import PokemonListTab from "../tabs/PokemonList";
+import Map from "../tabs/Map";
+import PokemonList from "../tabs/PokemonList";
 
 const renderScene = BottomNavigation.SceneMap({
-  "poke-list": PokemonListTab,
+  "poke-list": PokemonList,
   "poke-fav": FavoritePokemonTab,
-  "poke-map": MapTab,
+  "poke-map": Map,
 });
 
 const routes = [

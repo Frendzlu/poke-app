@@ -1,4 +1,6 @@
-{
+import 'dotenv/config';
+
+export default {
   "expo": {
     "name": "poke-app",
     "slug": "poke-app",
@@ -14,12 +16,17 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.poke-app"
+      "bundleIdentifier": "swm.mfrancik.poke-app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "process.env.EXPO_PUBLIC_MAP_API_KEY"
+        }
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -29,7 +36,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ],
-      "package": "com.anonymous.pokeapp"
+      "package": "swm.mfrancik.pokeapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"

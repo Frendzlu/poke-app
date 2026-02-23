@@ -9,7 +9,7 @@ import PokemonDetails from "../components/PokemonDetails";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
 import BottomSheetWrapper from "../components/BottomSheetWrapper";
 
-function PokemonListTab() {
+function PokemonList() {
   const {
     allPokemon,
     isFetchingMore,
@@ -71,7 +71,7 @@ function PokemonListTab() {
       {selectedPokemon && (
         <BottomSheetWrapper
           tintColor={selectedPokemon.pokemonSpecies?.color || "grey"}
-          snapPoints={["5%", "45%", "65%", "90%"]}
+          snapPoints={["45%", "65%", "90%"]}
         >
           <PokemonDetails pokemon={selectedPokemon} />
         </BottomSheetWrapper>
@@ -80,4 +80,4 @@ function PokemonListTab() {
   );
 }
 
-export default PokemonListTab;
+export default PokemonList;

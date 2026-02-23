@@ -1,4 +1,4 @@
-import { Marker } from "./tabs/Map";
+import { Marker } from "./models/Marker";
 import { Pokemon } from "./models/Pokemon";
 import { PokemonDictionary } from "./contexts/PokemonListContext";
 import { Platform } from "react-native";
@@ -59,6 +59,7 @@ export default class Utils {
                 longitude: marker.lon,
             };
             const spriteRef = spriteRefs[pokemon.id];
+            const markerId = marker.id || `pkm-${pokemon.id}-at-${Date.now()}`;
 
             if (Platform.OS === "ios") {
                 annotations.push({
@@ -67,16 +68,15 @@ export default class Utils {
                     text: spriteRef ? "" : `#${pokemon.id}`,
                     backgroundColor: pokemon.pokemonSpecies.color,
                     textColor: "white",
-                    ...(spriteRef ? { icon: spriteRef } : {}),
+                    id: markerId,
+                    icon: spriteRef,
                 });
             } else {
                 googleMarkers.push({
-                    id: `pokemon-${pokemon.id}-${marker.lat}-${marker.lon}`,
+                    id: markerId,
                     coordinates: coords,
                     title: pokemon.name,
-                    snippet: `#${pokemon.id} - ${pokemon.types.join(", ")}`,
-                    showCallout: true,
-                    ...(spriteRef ? { icon: spriteRef } : {}),
+                    icon: spriteRef,
                 });
             }
         }

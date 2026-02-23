@@ -1,4 +1,5 @@
-import { View, Image, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { Text, Surface, Chip } from "react-native-paper";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
 import { Pokemon } from "../models/Pokemon";
@@ -22,7 +23,7 @@ function PokemonDetailsMap({
           <Image
             source={{ uri: pokemon.sprite }}
             style={styles.image}
-            resizeMode="contain"
+            contentFit="contain"
           />
         </Surface>
       </View>
@@ -37,8 +38,8 @@ function PokemonDetailsMap({
         variant="bodyMedium"
         style={{ color: "#666", textAlign: "center", paddingHorizontal: 16 }}
       >
-        Your favorite Pokemon has been spotted {pokemonMapOccurrences} times on
-        the map!
+        This Pokemon has been spotted {pokemonMapOccurrences} time(s) on the
+        map!
       </Text>
     </View>
   );
@@ -49,13 +50,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingTop: 24,
-    paddingBottom: 40,
-    gap: 16,
+    paddingBottom: 24,
     backgroundColor: "transparent",
   },
   imageSurfaceContainer: {
     width: "90%",
-    height: "90%",
+    aspectRatio: 1,
+    marginBottom: 16,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -63,7 +64,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(255,255,255,0.5)",
     alignItems: "center",
     justifyContent: "center",
   },

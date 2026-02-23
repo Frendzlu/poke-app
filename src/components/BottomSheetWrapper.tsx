@@ -7,6 +7,7 @@ import Color from "color";
 const BlurBg = ({ tintColor }: { tintColor: string }) => (
   <BlurView
     intensity={12}
+    experimentalBlurMethod="dimezisBlurView"
     // tint="dark"
     style={[styles.background, { backgroundColor: `${tintColor}20` }]}
   ></BlurView>
@@ -33,7 +34,7 @@ function BottomSheetWrapper(props: {
     const timeout = setTimeout(() => {
       setDisplayChildren(props.children);
       setDisplayTintColor(props.tintColor);
-      sheetRef.current?.snapToIndex(1);
+      sheetRef.current?.snapToIndex(0);
     }, 200);
     return () => clearTimeout(timeout);
   }, [props.children, props.tintColor]);

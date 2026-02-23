@@ -12,10 +12,9 @@ import BottomSheetWrapper from "../components/BottomSheetWrapper";
 import PokemonDetailsMap from "../components/PokemonDetailsMap";
 import { StorageService } from "../services/StorageService";
 import { Marker } from "../models/Marker";
+import { GoogleMapsMarker } from "expo-maps/build/google/GoogleMaps.types";
 
-export type { Marker };
-
-function MapTab() {
+function Map() {
   if (Platform.OS !== "ios" && Platform.OS !== "android") {
     return <Text>Maps are only available on Android and iOS</Text>;
   }
@@ -25,9 +24,15 @@ function MapTab() {
 
   const [visible, setVisible] = React.useState(false);
   const [markers, setMarkers] = React.useState<Marker[]>([]);
-  const [selectedCoordinates, setSelectedCoordinates] =
-    React.useState<Coordinates | null>(null);
+  const [selectedCoordinates, setSelectedCoordinates] = React.useState<
+    Coordinates | undefined
+  >(undefined);
   const [spriteRefs, setSpriteRefs] = useState<Record<number, ImageRef>>({});
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const [selectedMarker, setSelectedMarker] = useState<Marker | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     async function loadMarkers() {
@@ -35,15 +40,17 @@ function MapTab() {
       if (cachedData.length > 0) {
         setMarkers(cachedData);
       }
+      setIsLoaded(true);
     }
     loadMarkers();
   }, []);
 
   useEffect(() => {
-    StorageService.setMarkers(markers);
-  }, [markers]);
+    if (isLoaded) {
+      StorageService.setMarkers(markers);
+    }
+  }, [markers, isLoaded]);
 
-  // Load sprite images for all markers' pokemon
   useEffect(() => {
     let cancelled = false;
 
@@ -87,9 +94,15 @@ function MapTab() {
   }, [markers, allPokemon]);
 
   const { annotations, googleMarkers } = useMemo(() => {
-    const result = Utils.returnValidMarkers(markers, allPokemon, spriteRefs);
-    return result;
-  }, [markers, allPokemon, spriteRefs]);
+    if (
+      !isLoaded ||
+      markers.length === 0 ||
+      Object.keys(allPokemon).length === 0
+    ) {
+      return { annotations: [], googleMarkers: [] };
+    }
+    return Utils.returnValidMarkers(markers, allPokemon, spriteRefs);
+  }, [markers, allPokemon, spriteRefs, isLoaded]);
 
   const handleConfirm = () => {
     setMarkers((prev) => [
@@ -98,18 +111,32 @@ function MapTab() {
         lat: selectedCoordinates?.latitude,
         lon: selectedCoordinates?.longitude,
         pokemonId: favoritePokemonId,
+        id: `pokemon-${favoritePokemonId}-${selectedCoordinates?.latitude}-${selectedCoordinates?.longitude}`,
       },
     ]);
     setVisible(false);
   };
 
-  const favoritePokemonOccurrences = useMemo(() => {
-    if (favoritePokemonId === -1) return 0;
-    return markers.filter((m) => m.pokemonId === favoritePokemonId).length;
-  }, [markers, favoritePokemonId]);
+  const selectedPokemonOccurrences = useMemo(() => {
+    if (selectedMarker?.pokemonId === -1) return 0;
+    return markers.filter((m) => m.pokemonId === selectedMarker?.pokemonId)
+      .length;
+  }, [markers, selectedMarker]);
 
   const handleAnnotationPress = (event: AppleMapsAnnotation) => {
     console.log("Annotation pressed:", event);
+    console.log("All markers:", annotations);
+    const marker = markers.find((m) => m.id === event.id);
+    console.log("Found annotation:", marker);
+    setSelectedMarker(marker);
+  };
+
+  const handleMarkerPress = (event: GoogleMapsMarker) => {
+    console.log("Marker pressed:", event);
+    console.log("All markers:", googleMarkers);
+    const marker = markers.find((m) => m.id === event.id);
+    console.log("Found marker for pressed annotation:", marker);
+    setSelectedMarker(marker);
   };
 
   const handleMapTouch = (event: { coordinates: Coordinates }) => {
@@ -119,19 +146,22 @@ function MapTab() {
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.pressable}>
-        {Platform.OS === "ios" && (
+        {Platform.OS === "ios" && isLoaded && (
           <AppleMaps.View
+            key="apple-map"
             style={{ flex: 1 }}
             onMapLongPress={handleMapTouch}
             annotations={annotations}
             onAnnotationClick={handleAnnotationPress}
           />
         )}
-        {Platform.OS === "android" && (
+        {Platform.OS === "android" && isLoaded && (
           <GoogleMaps.View
+            key="google-map"
             style={{ flex: 1 }}
             onMapLongClick={handleMapTouch}
             markers={googleMarkers}
+            onMarkerClick={handleMarkerPress}
           />
         )}
       </View>
@@ -140,21 +170,19 @@ function MapTab() {
         onDismiss={() => setVisible(false)}
         onConfirm={handleConfirm}
       />
-      (allPokemon[favoritePokemonId] &&
-      <BottomSheetWrapper
-        tintColor={
-          favoritePokemonId !== -1
-            ? allPokemon[favoritePokemonId]?.pokemonSpecies.color || "grey"
-            : "grey"
-        }
-        snapPoints={["5%", "45%", "65%", "90%"]}
-      >
-        <PokemonDetailsMap
-          pokemon={allPokemon[favoritePokemonId]}
-          pokemonMapOccurrences={favoritePokemonOccurrences}
-        />
-      </BottomSheetWrapper>
-      )
+      {selectedMarker && (
+        <BottomSheetWrapper
+          tintColor={
+            allPokemon[selectedMarker.pokemonId]?.pokemonSpecies.color || "grey"
+          }
+          snapPoints={["65%"]}
+        >
+          <PokemonDetailsMap
+            pokemon={allPokemon[selectedMarker.pokemonId]}
+            pokemonMapOccurrences={selectedPokemonOccurrences}
+          />
+        </BottomSheetWrapper>
+      )}
     </View>
   );
 }
@@ -165,4 +193,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MapTab;
+export default Map;

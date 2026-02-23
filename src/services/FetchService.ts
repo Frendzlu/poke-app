@@ -12,7 +12,7 @@ export default class FetchService {
                     return cachedData.map((poke: any) => new Pokemon(poke));
                 }
             }
-            const response = await fetch("https://graphql.pokeapi.co/v1beta2", {
+            const response = await fetch(process.env.EXPO_PUBLIC_API_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -33,7 +33,7 @@ export default class FetchService {
     static async fetchPokemonByIds(ids: number[]): Promise<Pokemon[]> {
         if (ids.length === 0) return [];
         try {
-            const response = await fetch("https://graphql.pokeapi.co/v1beta2", {
+            const response = await fetch(process.env.EXPO_PUBLIC_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ query: this.getQueryWithIds(ids) }),
@@ -48,7 +48,7 @@ export default class FetchService {
 
     static async fetchPokemonById(id: number) {
         try {
-            const response = await fetch("https://graphql.pokeapi.co/v1beta2", {
+            const response = await fetch(process.env.EXPO_PUBLIC_API_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
