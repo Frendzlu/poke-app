@@ -3,11 +3,12 @@ import React from "react";
 import { FavoritePokemonProvider } from "./src/contexts/FavoritePokemonContext";
 import { PokemonListProvider } from "./src/contexts/PokemonListContext";
 import { BottomNavigation, PaperProvider } from "react-native-paper";
-import PokemonListTab from "./src/tabs/PokemonListTab";
-import FavoritePokemonTab from "./src/tabs/FavoritePokemonTab";
-import CameraTab from "./src/tabs/CameraTab";
-import MapTab from "./src/tabs/MapTab";
+import PokemonListTab from "./src/tabs/PokemonList";
+import FavoritePokemonTab from "./src/tabs/FavoritePokemon";
+import CameraTab from "./src/tabs/Camera";
+import MapTab from "./src/tabs/Map";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Retrieve the GraphQL schema (for development purposes)
 // {
@@ -63,18 +64,20 @@ export default function App() {
   const [index, setIndex] = React.useState(0);
 
   return (
-    <SafeAreaProvider>
-      <PaperProvider>
-        <PokemonListProvider>
-          <FavoritePokemonProvider>
-            <BottomNavigation
-              navigationState={{ index, routes }}
-              onIndexChange={setIndex}
-              renderScene={renderScene}
-            />
-          </FavoritePokemonProvider>
-        </PokemonListProvider>
-      </PaperProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView>
+      <SafeAreaProvider>
+        <PaperProvider>
+          <PokemonListProvider>
+            <FavoritePokemonProvider>
+              <BottomNavigation
+                navigationState={{ index, routes }}
+                onIndexChange={setIndex}
+                renderScene={renderScene}
+              />
+            </FavoritePokemonProvider>
+          </PokemonListProvider>
+        </PaperProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
