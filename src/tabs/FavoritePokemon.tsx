@@ -8,7 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 import { RootNavigationProp } from "../navigation/types";
 import FetchService from "../services/FetchService";
 
-function FavoritePokemonTab() {
+function FavoritePokemon() {
   const { favoritePokemonId, toggleFavorite } = useFavoriteContext();
   const { allPokemon } = usePokemonList();
   const navigation = useNavigation<RootNavigationProp>();
@@ -21,14 +21,6 @@ function FavoritePokemonTab() {
     return (
       <View style={styles.empty}>
         <Text>No favorite Pokemon selected.</Text>
-      </View>
-    );
-  }
-
-  if (!favoritePokemon) {
-    return (
-      <View style={styles.empty}>
-        <Text>Favorite Pokemon not available.</Text>
       </View>
     );
   }
@@ -79,4 +71,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FavoritePokemonTab;
+export default FavoritePokemon;

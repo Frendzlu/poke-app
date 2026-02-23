@@ -84,6 +84,7 @@ export function PokemonListProvider({
   }, []);
 
   const onRefresh = useCallback(() => {
+    // TODO: fix this logic - should not remove the existing pokemon
     setIsRefreshing(true);
     FetchService.fetchPokemonList(0)
       .then((data) => {
