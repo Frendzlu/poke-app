@@ -87,22 +87,11 @@ function MapTab() {
   }, [markers, allPokemon]);
 
   const { annotations, googleMarkers } = useMemo(() => {
-    console.log("Computing valid markers for map display...");
-    console.log("Current markers:", markers);
     const result = Utils.returnValidMarkers(markers, allPokemon, spriteRefs);
-    console.log(
-      "Markers with valid Pokemon:",
-      Platform.OS === "ios" ? result.annotations : result.googleMarkers,
-    );
     return result;
   }, [markers, allPokemon, spriteRefs]);
 
   const handleConfirm = () => {
-    console.log(
-      "Marker confirmed! [lat, lon]:",
-      selectedCoordinates?.latitude,
-      selectedCoordinates?.longitude,
-    );
     setMarkers((prev) => [
       ...prev,
       {
@@ -124,9 +113,6 @@ function MapTab() {
   };
 
   const handleMapTouch = (event: { coordinates: Coordinates }) => {
-    console.log(
-      `Map touched at [lat, lon]: ${event.coordinates.latitude}, ${event.coordinates.longitude}`,
-    );
     setSelectedCoordinates(event.coordinates);
     setVisible(true);
   };
