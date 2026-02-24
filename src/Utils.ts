@@ -83,4 +83,68 @@ export default class Utils {
 
         return { annotations, googleMarkers };
     }
+
+    static shiftPointToMiddle(
+        pointX: number,
+        pointY: number,
+        elementWidth: number,
+        elementHeight: number
+    ): { x: number; y: number } {
+        let shiftedX = pointX - elementWidth / 2;
+        let shiftedY = pointY - elementHeight / 2;
+        return {
+            x: shiftedX * 2 / elementWidth,
+            y: shiftedY * 2 / elementHeight,
+        };
+    }
+
+    static shiftPointFromMiddle(
+        pointX: number,
+        pointY: number,
+        elementWidth: number,
+        elementHeight: number
+    ): { x: number; y: number } {
+        let pixelX = pointX * elementWidth / 2;
+        let pixelY = pointY * elementHeight / 2;
+        return {
+            x: pixelX + elementWidth / 2,
+            y: pixelY + elementHeight / 2,
+        };
+    }
+
+    static getRelativeLength(
+        absoluteLength: number,
+        referenceLength: number
+    ): number {
+        return absoluteLength / referenceLength * 2;
+    }
+
+    static getAbsoluteLength(
+        relativeLength: number,
+        referenceLength: number
+    ): number {
+        return relativeLength / 2 * referenceLength;
+    }
+
+    static rotatePointAroundCenter(
+        point: { x: number; y: number },
+        center: {x: number; y: number},
+        rotationAngle: number
+    ): { x: number; y: number } {
+        const { x: pointX, y: pointY } = point;
+        const { x: centerX, y: centerY } = center;
+        const angleRadians = (rotationAngle * Math.PI) / 180;
+        const cosTheta = Math.cos(angleRadians);
+        const sinTheta = Math.sin(angleRadians);
+
+        const translatedX = pointX - centerX;
+        const translatedY = pointY - centerY;
+
+        const rotatedX =
+            translatedX * cosTheta - translatedY * sinTheta + centerX;
+        const rotatedY =
+            translatedX * sinTheta + translatedY * cosTheta + centerY;
+
+        return { x: rotatedX, y: rotatedY };
+    }
 }
