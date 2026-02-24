@@ -24,21 +24,18 @@ function PokemonList() {
     number | undefined
   >(undefined);
 
-  const renderItem = useCallback(
-    ({ item }: { item: Pokemon }) => (
-      <PokemonListComponent
-        pokemon={item.toListProps()}
-        setSelectedPokemon={setSelectedPokemon}
-      />
-    ),
-    [],
+  const renderItem = ({ item }: { item: Pokemon }) => (
+    <PokemonListComponent
+      pokemon={item.toListProps()}
+      setSelectedPokemon={setSelectedPokemon}
+    />
   );
 
-  const allPokemonList = useMemo(() => Object.values(allPokemon), [allPokemon]);
+  const allPokemonList = Object.values(allPokemon);
 
-  const selectedPokemon = useMemo(() => {
-    return selectedPokemonId ? allPokemon[selectedPokemonId] : undefined;
-  }, [selectedPokemonId, allPokemon]);
+  const selectedPokemon = selectedPokemonId
+    ? allPokemon[selectedPokemonId]
+    : undefined;
 
   return (
     <SafeAreaView

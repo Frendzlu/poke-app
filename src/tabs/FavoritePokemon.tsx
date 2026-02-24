@@ -12,10 +12,8 @@ function FavoritePokemon() {
   const { favoritePokemonId, toggleFavorite } = useFavoriteContext();
   const { allPokemon } = usePokemonList();
   const navigation = useNavigation<RootNavigationProp>();
-  const favoritePokemon = useMemo(() => {
-    if (favoritePokemonId === -1) return undefined;
-    return allPokemon[favoritePokemonId];
-  }, [favoritePokemonId, allPokemon]);
+  const favoritePokemon =
+    favoritePokemonId === -1 ? undefined : allPokemon[favoritePokemonId];
 
   if (favoritePokemonId === -1) {
     return (

@@ -93,7 +93,7 @@ function Map() {
     };
   }, [markers, allPokemon]);
 
-  const { annotations, googleMarkers } = useMemo(() => {
+  const { annotations, googleMarkers } = (() => {
     if (
       !isLoaded ||
       markers.length === 0 ||
@@ -102,7 +102,7 @@ function Map() {
       return { annotations: [], googleMarkers: [] };
     }
     return Utils.returnValidMarkers(markers, allPokemon, spriteRefs);
-  }, [markers, allPokemon, spriteRefs, isLoaded]);
+  })();
 
   const handleConfirm = () => {
     setMarkers((prev) => [
@@ -117,11 +117,11 @@ function Map() {
     setVisible(false);
   };
 
-  const selectedPokemonOccurrences = useMemo(() => {
+  const selectedPokemonOccurrences = (() => {
     if (selectedMarker?.pokemonId === -1) return 0;
     return markers.filter((m) => m.pokemonId === selectedMarker?.pokemonId)
       .length;
-  }, [markers, selectedMarker]);
+  })();
 
   const handleAnnotationPress = (event: AppleMapsAnnotation) => {
     console.log("Annotation pressed:", event);
