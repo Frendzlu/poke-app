@@ -29,6 +29,7 @@ import { Worklets } from "react-native-worklets-core";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
 import { usePokemonList } from "../contexts/PokemonListContext";
 import Utils from "../Utils";
+import Animated from "react-native-reanimated";
 
 function CameraScreen() {
   const cameraDeviceString = "front"; // or "front"
@@ -254,12 +255,22 @@ function CameraScreen() {
         ],
       };
       return (
-        <Image
-          key={i}
-          source={favoritePokemon.sprite}
-          style={style}
-          contentFit="contain"
-        />
+        <Animated.View
+          style={{
+            transform: [
+              {
+                matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 50, 1],
+              },
+            ],
+          }}
+        >
+          <Image
+            key={i}
+            source={favoritePokemon.sprite}
+            style={style}
+            contentFit="contain"
+          />
+        </Animated.View>
       );
     });
     return <>{overlayElements}</>;
