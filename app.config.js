@@ -52,6 +52,36 @@ export default {
           locationPermission: "Allow $(PRODUCT_NAME) to use your location",
         },
       ],
+      [
+        "react-native-vision-camera",
+        {
+          cameraPermissionText: "Allow $(PRODUCT_NAME) to use your Camera.",
+        },
+      ],
+      [
+        "expo-build-properties",
+        {
+          ios: {
+            deploymentTarget: "16.0",
+          },
+          android: {
+            compileSdkVersion: 35,
+            targetSdkVersion: 34,
+            buildToolsVersion: "34.0.0",
+            minSdkVersion: 34,
+          },
+        },
+      ],
+      [
+        "expo-media-library",
+        {
+          photosPermission:
+            "Allow $(PRODUCT_NAME) to save your Pokemon AR photos to your gallery.",
+          savePhotosPermission:
+            "Allow $(PRODUCT_NAME) to save your Pokemon AR photos to your gallery.",
+          isStandard: true,
+        },
+      ],
     ],
   },
 };

@@ -2,11 +2,9 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { FAB } from "react-native-paper";
 import PokemonDetails from "../components/PokemonDetails";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
-import { useMemo } from "react";
 import { usePokemonList } from "../contexts/PokemonListContext";
 import { useNavigation } from "@react-navigation/native";
 import { RootNavigationProp } from "../navigation/types";
-import FetchService from "../services/FetchService";
 
 function FavoritePokemon() {
   const { favoritePokemonId, toggleFavorite } = useFavoriteContext();

@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { StorageService } from "../services/StorageService";
 
 interface FavoritePokemonContextType {
@@ -23,6 +17,13 @@ export function FavoritePokemonProvider({
   children: React.ReactNode;
 }) {
   const [favoritePokemonId, setFavoritePokemonId] = useState<number>(-1);
+
+  // Restore persisted favorite on mount
+  useEffect(() => {
+    StorageService.getFavoriteId().then((id) => {
+      if (id !== -1) setFavoritePokemonId(id);
+    });
+  }, []);
 
   // Restore persisted favorite on mount
   useEffect(() => {

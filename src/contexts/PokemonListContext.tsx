@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useRef,
-  useState,
-} from "react";
+import React, { createContext, useContext, useRef, useState } from "react";
 import FetchService from "../services/FetchService";
 import { StorageService } from "../services/StorageService";
 import { Pokemon } from "../models/Pokemon";

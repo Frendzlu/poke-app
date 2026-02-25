@@ -1,13 +1,12 @@
 import { StyleSheet, Platform, Text, View } from "react-native";
 import { AppleMaps, Coordinates, GoogleMaps } from "expo-maps";
 import ConfirmMarkerDialog from "../components/ConfirmMarkerDialog";
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePokemonList } from "../contexts/PokemonListContext";
 import Utils from "../Utils";
 import { Image, ImageRef } from "expo-image";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
 import { AppleMapsAnnotation } from "expo-maps/build/apple/AppleMaps.types";
-import BottomSheet from "@gorhom/bottom-sheet";
 import BottomSheetWrapper from "../components/BottomSheetWrapper";
 import PokemonDetailsMap from "../components/PokemonDetailsMap";
 import { StorageService } from "../services/StorageService";

@@ -1,9 +1,7 @@
 import { View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
-import { Text, Surface, Chip } from "react-native-paper";
-import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
+import { Text, Surface } from "react-native-paper";
 import { Pokemon } from "../models/Pokemon";
-import Utils from "../Utils";
 import Color from "color";
 
 function PokemonDetailsMap({
