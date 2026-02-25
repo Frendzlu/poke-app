@@ -49,7 +49,7 @@ function PokemonListComponent(props: {
   );
 }
 
-export default React.memo(PokemonListComponent);
+export default PokemonListComponent;
 
 const styles = StyleSheet.create({
   surface: {

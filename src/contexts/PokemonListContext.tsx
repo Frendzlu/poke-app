@@ -41,7 +41,7 @@ export function PokemonListProvider({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const offsetRef = useRef(0);
 
-  const fetchMore = useCallback(() => {
+  const fetchMore = () => {
     if (isFetchingMore || isRefreshing) return;
     setIsFetchingMore(true);
     console.log("fetching more pokemon with offset", offsetRef.current);
@@ -58,9 +58,9 @@ export function PokemonListProvider({
       })
       .catch(console.error)
       .finally(() => setIsFetchingMore(false));
-  }, [Object.keys(allPokemon).length, isFetchingMore, isRefreshing]);
+  };
 
-  const ensurePokemonLoaded = useCallback(async (ids: number[]) => {
+  const ensurePokemonLoaded = async (ids: number[]) => {
     setAllPokemon((prev) => {
       const missing = ids.filter((id) => !prev[id]);
       if (missing.length === 0) return prev;
@@ -81,9 +81,9 @@ export function PokemonListProvider({
 
       return prev; // optimistic — don't block render
     });
-  }, []);
+  };
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = () => {
     // TODO: fix this logic - should not remove the existing pokemon
     setIsRefreshing(true);
     FetchService.fetchPokemonList(0)
@@ -96,13 +96,13 @@ export function PokemonListProvider({
       })
       .catch(console.error)
       .finally(() => setIsRefreshing(false));
-  }, []);
+  };
 
-  const deletePokemon = useCallback(() => {
+  const deletePokemon = () => {
     StorageService.clearPokemonCache();
     offsetRef.current = 0;
     setAllPokemon({});
-  }, []);
+  };
 
   return (
     <PokemonListContext.Provider

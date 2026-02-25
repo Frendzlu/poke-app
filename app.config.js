@@ -14,6 +14,9 @@ export default {
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },
+    experiments: {
+      reactCompiler: true,
+    },
     ios: {
       supportsTablet: true,
       bundleIdentifier: "swm.mfrancik.poke-app",
