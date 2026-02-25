@@ -1,6 +1,6 @@
 import { useIsFocused } from "@react-navigation/native";
 import { Image } from "expo-image";
-import { use, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AppState,
   StyleProp,
@@ -8,12 +8,10 @@ import {
   Text,
   View,
   ImageStyle,
-  Dimensions,
   LayoutChangeEvent,
   Platform,
 } from "react-native";
 import {
-  Frame,
   useCameraDevice,
   useCameraPermission,
   Camera,

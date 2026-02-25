@@ -1,5 +1,4 @@
 import { Marker } from "./models/Marker";
-import { Pokemon } from "./models/Pokemon";
 import { PokemonDictionary } from "./contexts/PokemonListContext";
 import { Platform } from "react-native";
 import { AppleMapsAnnotation } from "expo-maps/build/apple/AppleMaps.types";
