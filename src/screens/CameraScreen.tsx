@@ -1,4 +1,4 @@
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -6,6 +6,7 @@ import {
   StyleProp,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   ImageStyle,
   LayoutChangeEvent,
@@ -28,6 +29,7 @@ import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
 import { usePokemonList } from "../contexts/PokemonListContext";
 import Utils from "../Utils";
 import Animated from "react-native-reanimated";
+import { RootNavigationProp } from "../navigation/types";
 
 function CameraScreen() {
   const cameraDeviceString = "front"; // or "front"
@@ -36,15 +38,12 @@ function CameraScreen() {
   const { allPokemon } = usePokemonList();
   const device = useCameraDevice(cameraDeviceString);
   const isFocused = useIsFocused();
-  const appState = useRef(AppState.currentState);
-  const isActive = isFocused && appState.current === "active";
+  const [activeAppState, setActiveAppState] = useState(AppState.currentState);
+  const isActive = isFocused && activeAppState === "active";
   const [facesDetected, setFacesDetected] = useState<Face[]>([]);
   const favoritePokemon = allPokemon[favoritePokemonId];
-  const [layout, setLayout] = useState({
-    scale: 1,
-    offsetX: 0,
-    offsetY: 0,
-  });
+  const camera = useRef<Camera>(null);
+  const navigation = useNavigation<RootNavigationProp>();
 
   const faceDetectionOptions = useRef<FrameFaceDetectionOptions>({
     // detection options
@@ -60,37 +59,45 @@ function CameraScreen() {
   };
 
   useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      setActiveAppState(nextAppState);
+    });
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    if (!hasPermission) {
+      requestPermission();
+    }
+  }, [hasPermission, requestPermission]);
+
+  useEffect(() => {
     return () => {
       // you must call `stopListeners` when current component is unmounted
       stopListeners();
     };
   }, []);
 
-  useEffect(() => {
-    if (!device) {
-      // you must call `stopListeners` when `Camera` component is unmounted
-      stopListeners();
-      return;
-    }
-
-    (async () => {
-      const status = await Camera.requestCameraPermission();
-      console.log({ status });
-    })();
-  }, [device]);
+  if (!hasPermission) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Camera permission is required.</Text>
+      </View>
+    );
+  }
 
   const handleDetectedFaces = Worklets.createRunOnJS(
     (faces: Face[], frameWidth: number, frameHeight: number) => {
       const isPortraitSensor = ["portrait", "portrait-upside-down"].includes(
         device!.sensorOrientation,
       );
-      console.log("faces detected", faces);
-      console.log("frame dimensions", { frameWidth, frameHeight });
-      console.log("device", {
-        sensorOrientation: device?.sensorOrientation,
-        name: device?.name,
-        position: device?.position,
-      });
+      // console.log("faces detected", faces);
+      // console.log("frame dimensions", { frameWidth, frameHeight });
+      // console.log("device", {
+      //   sensorOrientation: device?.sensorOrientation,
+      //   name: device?.name,
+      //   position: device?.position,
+      // });
 
       let facesRemapped = faces;
       //somehow, ios has a portrait sensor orientation in landscape mode... why?
@@ -99,63 +106,44 @@ function CameraScreen() {
         (!isPortraitSensor && Platform.OS === "android");
 
       if (shouldSwapDimensions) {
-        // remember to swap width and height
-        // and recalculate the coord system to be top-left based instead of top right (top left for landscape)
         facesRemapped = faces.map((face) => {
-          const faceTopLeftX = face.bounds.y + face.bounds.height; // y is the horizontal distance from right edge
-          const faceTopLeftY = face.bounds.x;
-          console.log("corrected top left", { faceTopLeftX, faceTopLeftY });
-          const faceTopLeft = Utils.shiftPointToMiddle(
-            faceTopLeftX,
-            faceTopLeftY,
-            frameHeight, //this is the width in landscape
-            frameWidth, //this is the height in landscape
-          );
-          console.log("face top left shifted to middle", faceTopLeft);
-
-          return {
-            ...face,
-            bounds: {
-              height: Utils.getRelativeLength(face.bounds.height, frameWidth),
-              width: Utils.getRelativeLength(face.bounds.width, frameHeight),
-              x: faceTopLeft.x,
-              y: faceTopLeft.y,
-            },
-          };
+          if (Platform.OS === "android") {
+            return Utils.remapFaceAndroid(face, frameWidth, frameHeight);
+          }
+          return Utils.remapFaceIOS(face, frameWidth, frameHeight);
         });
       } else {
         facesRemapped = faces.map((face) => {
-          const faceTopLeft = Utils.shiftPointToMiddle(
-            face.bounds.x,
-            face.bounds.y,
-            frameWidth,
-            frameHeight,
-          );
-
-          return {
-            ...face,
-            bounds: {
-              width: Utils.getRelativeLength(face.bounds.width, frameWidth),
-              height: Utils.getRelativeLength(face.bounds.height, frameHeight),
-              x: faceTopLeft.x,
-              y: faceTopLeft.y,
-            },
-          };
+          return Utils.remapFace(face, frameWidth, frameHeight);
         });
       }
-
-      setLayout({
-        scale: Math.max(
-          frameWidth / previewSize.width,
-          frameHeight / previewSize.height,
-        ),
-        offsetX: 0,
-        offsetY: 0,
-      });
 
       setFacesDetected(facesRemapped);
     },
   );
+
+  const takePhoto = async () => {
+    console.log("Taking photo...");
+
+    if (!camera.current || !device) return;
+    try {
+      const photo = await camera.current.takePhoto();
+      console.log("Photo taken:", photo);
+      const base64 = await Utils.compositePhotoWithSprites(
+        photo.path,
+        favoritePokemon.sprite as string,
+        facesDetected,
+        device,
+      );
+      console.log("Composite created, saving photo...");
+      await Utils.saveCapturedPhoto(base64);
+      console.log("Photo saved, navigating back to map...");
+      navigation.navigate("Tabs");
+      // navigation.navigate("Camera");
+    } catch (error) {
+      console.error("Error capturing photo:", error);
+    }
+  };
 
   const frameProcessor = useFrameProcessor(
     (frame) => {
@@ -174,7 +162,7 @@ function CameraScreen() {
   const renderOverlay = () => {
     if (!facesDetected.length) return <></>;
     let overlayElements = facesDetected.map((face, i) => {
-      console.log("face", face);
+      // console.log("face", face);
       const { bounds, rollAngle, yawAngle, pitchAngle } = face;
       // if (
       //   device!.sensorOrientation === "portrait" ||
@@ -185,10 +173,12 @@ function CameraScreen() {
       //   bounds.y = face.bounds.x;
       //   bounds.height = face.bounds.width;
       // }
-      console.log("bounds", bounds);
-      console.log("preview size", previewSize);
+      // console.log("bounds", bounds);
+      // console.log("preview size", previewSize);
       const faceTopLeft = Utils.shiftPointFromMiddle(
-        device!.position === "front" ? -bounds.x : bounds.x,
+        device!.position === "front" && Platform.OS === "ios"
+          ? -bounds.x
+          : bounds.x,
         bounds.y,
         previewSize.width,
         previewSize.height,
@@ -201,7 +191,7 @@ function CameraScreen() {
         bounds.width,
         previewSize.width,
       );
-      console.log(faceTopLeft, faceWidth, faceHeight);
+      // console.log(faceTopLeft, faceWidth, faceHeight);
 
       const faceCenter = {
         x: faceTopLeft.x + faceWidth / 2,
@@ -210,24 +200,8 @@ function CameraScreen() {
 
       const foreheadOffset = -faceHeight * 0.35;
 
-      // const spriteCenter = Utils.rotatePointAroundCenter(
-      //   {
-      //     x: faceCenter.x - faceWidth * 0.15,
-      //     y: faceCenter.y - faceHeight * 0.6,
-      //   },
-      //   faceCenter,
-      //   rollAngle,
-      // );
-
       const spriteWidth = faceHeight * 0.25;
       const spriteHeight = faceWidth * 0.25;
-
-      // console.log({
-      //   spriteHeight,
-      //   spriteWidth,
-      //   faceCenter,
-      //   spriteCenter,
-      // });
 
       const safePitch = Math.max(Math.min(pitchAngle || 0, 60), -60);
       const safeYaw = Math.max(Math.min(yawAngle || 0, 60), -60);
@@ -282,12 +256,15 @@ function CameraScreen() {
       {!!device ? (
         <>
           <Camera
+            ref={camera}
             style={StyleSheet.absoluteFill}
             device={device}
             isActive={isActive}
+            photo={true}
             frameProcessor={frameProcessor}
           />
           {!!facesDetected.length && renderOverlay()}
+          <TouchableOpacity onPress={takePhoto} style={styles.captureButton} />
         </>
       ) : (
         <Text>No Device</Text>
@@ -295,5 +272,20 @@ function CameraScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  captureButton: {
+    position: "absolute",
+    bottom: 40,
+    alignSelf: "center",
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    zIndex: 100,
+    backgroundColor: "white",
+    borderWidth: 4,
+    borderColor: "rgba(240, 12, 195, 0.5)",
+  },
+});
 
 export default CameraScreen;
