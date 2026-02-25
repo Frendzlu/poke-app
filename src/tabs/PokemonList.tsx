@@ -9,7 +9,7 @@ import PokemonDetails from "../components/PokemonDetails";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
 import BottomSheetWrapper from "../components/BottomSheetWrapper";
 
-function PokemonListTab() {
+function PokemonList() {
   const {
     allPokemon,
     isFetchingMore,
@@ -24,25 +24,24 @@ function PokemonListTab() {
     number | undefined
   >(undefined);
 
-  const renderItem = useCallback(
-    ({ item }: { item: Pokemon }) => (
-      <PokemonListComponent
-        pokemon={item.toListProps()}
-        setSelectedPokemon={setSelectedPokemon}
-      />
-    ),
-    [],
+  const renderItem = ({ item }: { item: Pokemon }) => (
+    <PokemonListComponent
+      pokemon={item.toListProps()}
+      setSelectedPokemon={setSelectedPokemon}
+    />
   );
 
-  const selectedPokemon = useMemo(() => {
-    return allPokemon.find((p) => p.id === selectedPokemonId);
-  }, [selectedPokemonId, allPokemon]);
+  const allPokemonList = Object.values(allPokemon);
+
+  const selectedPokemon = selectedPokemonId
+    ? allPokemon[selectedPokemonId]
+    : undefined;
 
   return (
     <SafeAreaView
       style={{ alignItems: "center", justifyContent: "center", flex: 1 }}
     >
-      <Text>Total Pokemon: {allPokemon?.length}</Text>
+      <Text>Total Pokemon: {Object.keys(allPokemon).length}</Text>
       <Button
         mode="contained"
         buttonColor="red"
@@ -54,7 +53,7 @@ function PokemonListTab() {
       <FlatList
         style={{ width: "90%" }}
         contentContainerStyle={{ flexGrow: 1 }}
-        data={allPokemon}
+        data={allPokemonList}
         keyExtractor={(item: Pokemon) => item.id.toString()}
         renderItem={renderItem}
         refreshControl={
@@ -69,6 +68,7 @@ function PokemonListTab() {
       {selectedPokemon && (
         <BottomSheetWrapper
           tintColor={selectedPokemon.pokemonSpecies?.color || "grey"}
+          snapPoints={["45%", "65%", "90%"]}
         >
           <PokemonDetails pokemon={selectedPokemon} />
         </BottomSheetWrapper>
@@ -77,4 +77,4 @@ function PokemonListTab() {
   );
 }
 
-export default PokemonListTab;
+export default PokemonList;

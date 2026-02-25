@@ -1,0 +1,201 @@
+diff --git a/node_modules/expo-maps/build/apple/AppleMaps.types.d.ts b/node_modules/expo-maps/build/apple/AppleMaps.types.d.ts
+index 1d972f1..77fcae6 100644
+--- a/node_modules/expo-maps/build/apple/AppleMaps.types.d.ts
++++ b/node_modules/expo-maps/build/apple/AppleMaps.types.d.ts
+@@ -415,6 +415,16 @@ export type AppleMapsViewProps = {
+      * @platform ios 18.0+
+      */
+     onCircleClick?: (event: AppleMapsCircle) => void;
++    /**
++     * Lambda invoked when an annotation is clicked.
++     */
++    onAnnotationClick?: (event: AppleMapsAnnotation) => void;
++    /**
++     * Lambda invoked when the user long presses on the map.
++     */
++    onMapLongPress?: (event: {
++        coordinates: Coordinates;
++    }) => void;
+     /**
+      * Lambda invoked when the map was moved by the user.
+      */
+diff --git a/node_modules/expo-maps/ios/AppleMapsView.swift b/node_modules/expo-maps/ios/AppleMapsView.swift
+index 26be66c..655d34b 100644
+--- a/node_modules/expo-maps/ios/AppleMapsView.swift
++++ b/node_modules/expo-maps/ios/AppleMapsView.swift
+@@ -17,8 +17,10 @@ class AppleMapsViewProps: ExpoSwiftUI.ViewProps {
+   let onMarkerClick = EventDispatcher()
+   let onPolylineClick = EventDispatcher()
+   let onPolygonClick = EventDispatcher()
++  let onAnnotationClick = EventDispatcher()
+   let onCircleClick = EventDispatcher()
+   let onCameraMove = EventDispatcher()
++  let onMapLongPress = EventDispatcher()
+ }
+ 
+ protocol AppleMapsViewProtocol: View {
+diff --git a/node_modules/expo-maps/ios/AppleMapsViewiOS17.swift b/node_modules/expo-maps/ios/AppleMapsViewiOS17.swift
+index 2cb6aae..ec03e1b 100644
+--- a/node_modules/expo-maps/ios/AppleMapsViewiOS17.swift
++++ b/node_modules/expo-maps/ios/AppleMapsViewiOS17.swift
+@@ -78,6 +78,17 @@ struct AppleMapsViewiOS17: View, AppleMapsViewProtocol {
+                 .foregroundStyle(annotation.textColor)
+                 .padding(5)
+             }
++            .onTapGesture {
++              props.onAnnotationClick([
++                "id": annotation.id,
++                "title": annotation.title,
++                "text": annotation.text,
++                "coordinates": [
++                  "latitude": annotation.coordinates.latitude,
++                  "longitude": annotation.coordinates.longitude
++                ]
++              ])
++            }
+           }
+         }
+ 
+@@ -95,6 +106,26 @@ struct AppleMapsViewiOS17: View, AppleMapsViewProtocol {
+           ])
+         }
+       }
++      .simultaneousGesture(
++        LongPressGesture(minimumDuration: 0.5)
++          .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
++          .onEnded { value in
++            switch value {
++            case .second(true, let drag):
++              guard let location = drag?.location else { return }
++              if let coordinate = reader.convert(location, from: .local) {
++                props.onMapLongPress([
++                  "coordinates": [
++                    "latitude": coordinate.latitude,
++                    "longitude": coordinate.longitude
++                  ]
++                ])
++              }
++            default:
++              break
++            }
++          }
++      )
+       .mapControls {
+         if uiSettings.compassEnabled {
+           MapCompass()
+diff --git a/node_modules/expo-maps/ios/AppleMapsViewiOS18.swift b/node_modules/expo-maps/ios/AppleMapsViewiOS18.swift
+index d991b8f..2c1e1a4 100644
+--- a/node_modules/expo-maps/ios/AppleMapsViewiOS18.swift
++++ b/node_modules/expo-maps/ios/AppleMapsViewiOS18.swift
+@@ -106,6 +106,17 @@ struct AppleMapsViewiOS18: View, AppleMapsViewProtocol {
+                 .foregroundStyle(annotation.textColor)
+                 .padding(5)
+             }
++            .onTapGesture {
++              props.onAnnotationClick([
++                "id": annotation.id,
++                "title": annotation.title,
++                "text": annotation.text,
++                "coordinates": [
++                  "latitude": annotation.coordinates.latitude,
++                  "longitude": annotation.coordinates.longitude
++                ]
++              ])
++            }
+           }
+         }
+ 
+@@ -181,6 +192,25 @@ struct AppleMapsViewiOS18: View, AppleMapsViewProtocol {
+             }
+           }
+       )
++      .simultaneousGesture(LongPressGesture(minimumDuration: 0.5)
++          .sequenced(before: SpatialTapGesture())
++          .onEnded { value in
++            switch value {
++            case .second(true, let tap):
++              guard let location = tap?.location else { return }
++              if let coordinate = reader.convert(location, from: .local) {
++                props.onMapLongPress([
++                  "coordinates": [
++                    "latitude": coordinate.latitude,
++                    "longitude": coordinate.longitude
++                  ]
++                ])
++              }
++            default:
++              break
++            }
++          }
++      )
+       .mapControls {
+         if uiSettings.compassEnabled {
+           MapCompass()
+diff --git a/node_modules/expo-maps/src/apple/AppleMaps.types.ts b/node_modules/expo-maps/src/apple/AppleMaps.types.ts
+index 48beded..20b6b16 100644
+--- a/node_modules/expo-maps/src/apple/AppleMaps.types.ts
++++ b/node_modules/expo-maps/src/apple/AppleMaps.types.ts
+@@ -488,6 +488,16 @@ export type AppleMapsViewProps = {
+    */
+   onCircleClick?: (event: AppleMapsCircle) => void;
+ 
++  /**
++   * Lambda invoked when an annotation is clicked.
++   */
++  onAnnotationClick?: (event: AppleMapsAnnotation) => void;
++
++  /**
++   * Lambda invoked when the user long presses on the map.
++   */
++  onMapLongPress?: (event: { coordinates: Coordinates }) => void;
++
+   /**
+    * Lambda invoked when the map was moved by the user.
+    */
+diff --git a/node_modules/expo-maps/src/apple/AppleMapsView.tsx b/node_modules/expo-maps/src/apple/AppleMapsView.tsx
+index 7edcaf9..fe69acf 100644
+--- a/node_modules/expo-maps/src/apple/AppleMapsView.tsx
++++ b/node_modules/expo-maps/src/apple/AppleMapsView.tsx
+@@ -28,7 +28,9 @@ export const AppleMapsView = React.forwardRef<AppleMapsViewType, AppleMapsViewPr
+   (
+     {
+       onMapClick,
++      onMapLongPress,
+       onMarkerClick,
++      onAnnotationClick,
+       onCameraMove,
+       onPolylineClick,
+       onCircleClick,
+@@ -52,7 +54,9 @@ export const AppleMapsView = React.forwardRef<AppleMapsViewType, AppleMapsViewPr
+     }));
+ 
+     const onNativeMapClick = useNativeEvent(onMapClick);
++    const onNativeMapLongPress = useNativeEvent(onMapLongPress);
+     const onNativeMarkerClick = useNativeEvent(onMarkerClick);
++    const onNativeAnnotationClick = useNativeEvent(onAnnotationClick);
+     const onNativeCameraMove = useNativeEvent(onCameraMove);
+     const onNativePolylineClick = useNativeEvent(onPolylineClick);
+     const onNativePolygonClick = useNativeEvent(onPolygonClick);
+@@ -94,7 +98,9 @@ export const AppleMapsView = React.forwardRef<AppleMapsViewType, AppleMapsViewPr
+         circles={parsedCircles}
+         annotations={parsedAnnotations}
+         onMapClick={onNativeMapClick}
++        onMapLongPress={onNativeMapLongPress}
+         onMarkerClick={onNativeMarkerClick}
++        onAnnotationClick={onNativeAnnotationClick}
+         onCameraMove={onNativeCameraMove}
+         onPolylineClick={onNativePolylineClick}
+         onPolygonClick={onNativePolygonClick}
+diff --git a/node_modules/expo-maps/tsconfig.json b/node_modules/expo-maps/tsconfig.json
+index cbe9e19..2472482 100644
+--- a/node_modules/expo-maps/tsconfig.json
++++ b/node_modules/expo-maps/tsconfig.json
+@@ -2,6 +2,8 @@
+ {
+   "extends": "expo-module-scripts/tsconfig.base",
+   "compilerOptions": {
++    "jsx": "react",
++    "jsx": "react",
+     "outDir": "./build"
+   },
+   "include": ["./src"],

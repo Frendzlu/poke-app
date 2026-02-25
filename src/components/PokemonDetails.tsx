@@ -1,4 +1,5 @@
-import { View, Image, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { Text, Surface, Chip } from "react-native-paper";
 import { useFavoriteContext } from "../contexts/FavoritePokemonContext";
 import { Pokemon } from "../models/Pokemon";
@@ -48,7 +49,7 @@ function PokemonDetails({ pokemon }: { pokemon: Pokemon }) {
           <Image
             source={{ uri: pokemon.sprite }}
             style={styles.image}
-            resizeMode="contain"
+            contentFit="contain"
           />
         </Surface>
       </View>
@@ -123,13 +124,13 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(255,255,255,0.5)",
     alignItems: "center",
     justifyContent: "center",
   },
   image: {
     width: "100%",
     height: "100%",
+    backgroundColor: "transparent",
   },
   name: {
     fontWeight: "bold",
@@ -161,7 +162,6 @@ const styles = StyleSheet.create({
     width: "90%",
     borderRadius: 16,
     padding: 16,
-    backgroundColor: "rgba(255,255,255,0.7)",
   },
   statsTitle: {
     fontWeight: "bold",

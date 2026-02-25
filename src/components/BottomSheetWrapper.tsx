@@ -7,6 +7,7 @@ import Color from "color";
 const BlurBg = ({ tintColor }: { tintColor: string }) => (
   <BlurView
     intensity={12}
+    experimentalBlurMethod="dimezisBlurView"
     // tint="dark"
     style={[styles.background, { backgroundColor: `${tintColor}20` }]}
   ></BlurView>
@@ -15,9 +16,9 @@ const BlurBg = ({ tintColor }: { tintColor: string }) => (
 function BottomSheetWrapper(props: {
   children: React.ReactNode;
   tintColor: string;
+  snapPoints?: (string | number)[];
 }) {
   const sheetRef = useRef<BottomSheet>(null);
-  const snapPoints = ["45%", "60%", "90%"];
 
   const [displayChildren, setDisplayChildren] = useState(props.children);
   const [displayTintColor, setDisplayTintColor] = useState(props.tintColor);
@@ -33,7 +34,7 @@ function BottomSheetWrapper(props: {
     const timeout = setTimeout(() => {
       setDisplayChildren(props.children);
       setDisplayTintColor(props.tintColor);
-      sheetRef.current?.snapToIndex(1);
+      sheetRef.current?.snapToIndex(0);
     }, 200);
     return () => clearTimeout(timeout);
   }, [props.children, props.tintColor]);
@@ -42,7 +43,7 @@ function BottomSheetWrapper(props: {
     <BottomSheet
       ref={sheetRef}
       index={1}
-      snapPoints={snapPoints}
+      snapPoints={props.snapPoints}
       enableDynamicSizing={true}
       enablePanDownToClose={true}
       backgroundComponent={() => (

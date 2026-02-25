@@ -2,29 +2,33 @@ import React, {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useRef,
   useState,
 } from "react";
 import FetchService from "../services/FetchService";
+import { StorageService } from "../services/StorageService";
 import { Pokemon } from "../models/Pokemon";
 
+export type PokemonDictionary = Record<number, Pokemon>;
+
 type PokemonListContextType = {
-  allPokemon: Pokemon[];
+  allPokemon: PokemonDictionary;
   isFetchingMore: boolean;
   isRefreshing: boolean;
   fetchMore: () => void;
   onRefresh: () => void;
   deletePokemon: () => void;
+  ensurePokemonLoaded: (ids: number[]) => Promise<void>;
 };
 
 const PokemonListContext = createContext<PokemonListContextType>({
-  allPokemon: [],
+  allPokemon: {},
   isFetchingMore: false,
   isRefreshing: false,
   fetchMore: () => {},
   onRefresh: () => {},
   deletePokemon: () => {},
+  ensurePokemonLoaded: () => Promise.resolve(),
 });
 
 export function PokemonListProvider({
@@ -32,38 +36,73 @@ export function PokemonListProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [allPokemon, setAllPokemon] = useState<Pokemon[]>([]);
+  const [allPokemon, setAllPokemon] = useState<PokemonDictionary>({});
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const offsetRef = useRef(0); // TODO: Make it so that the offsetRef prevents multiple simultaneous fetches instead of relying on the isFetchingMore and isRefreshing state variables, which can
+  const offsetRef = useRef(0);
 
-  const fetchMore = useCallback(() => {
+  const fetchMore = () => {
     if (isFetchingMore || isRefreshing) return;
     setIsFetchingMore(true);
     console.log("fetching more pokemon with offset", offsetRef.current);
     FetchService.fetchPokemonList(offsetRef.current)
       .then((data) => {
-        setAllPokemon((prev) => [...prev, ...data]);
+        setAllPokemon((prev) => {
+          const next = { ...prev };
+          data.forEach((p: Pokemon) => {
+            next[p.id] = p;
+          });
+          return next;
+        });
         offsetRef.current += data.length;
       })
       .catch(console.error)
       .finally(() => setIsFetchingMore(false));
-  }, [allPokemon.length, isFetchingMore, isRefreshing]);
+  };
 
-  const onRefresh = useCallback(() => {
+  const ensurePokemonLoaded = async (ids: number[]) => {
+    setAllPokemon((prev) => {
+      const missing = ids.filter((id) => !prev[id]);
+      if (missing.length === 0) return prev;
+
+      FetchService.fetchPokemonByIds(missing)
+        .then((fetched) => {
+          setAllPokemon((current) => {
+            const next = { ...current };
+            fetched.forEach((p) => {
+              next[p.id] = p;
+            });
+            return next;
+          });
+        })
+        .catch((e) =>
+          console.error("ensurePokemonLoaded: failed to fetch", missing, e),
+        );
+
+      return prev; // optimistic — don't block render
+    });
+  };
+
+  const onRefresh = () => {
     // TODO: fix this logic - should not remove the existing pokemon
     setIsRefreshing(true);
     FetchService.fetchPokemonList(0)
-      .then((data) => setAllPokemon(data))
+      .then((data) => {
+        const dict: PokemonDictionary = {};
+        data.forEach((p: Pokemon) => {
+          dict[p.id] = p;
+        });
+        setAllPokemon(dict);
+      })
       .catch(console.error)
       .finally(() => setIsRefreshing(false));
-  }, []);
+  };
 
-  const deletePokemon = useCallback(() => {
-    FetchService.clearCache();
+  const deletePokemon = () => {
+    StorageService.clearPokemonCache();
     offsetRef.current = 0;
-    setAllPokemon([]);
-  }, []);
+    setAllPokemon({});
+  };
 
   return (
     <PokemonListContext.Provider
@@ -74,6 +113,7 @@ export function PokemonListProvider({
         fetchMore,
         onRefresh,
         deletePokemon,
+        ensurePokemonLoaded,
       }}
     >
       {children}
