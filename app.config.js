@@ -72,6 +72,16 @@ export default {
           },
         },
       ],
+      [
+        "expo-media-library",
+        {
+          photosPermission:
+            "Allow $(PRODUCT_NAME) to save your Pokemon AR photos to your gallery.",
+          savePhotosPermission:
+            "Allow $(PRODUCT_NAME) to save your Pokemon AR photos to your gallery.",
+          isStandard: true,
+        },
+      ],
     ],
   },
 };

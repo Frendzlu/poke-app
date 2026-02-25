@@ -1,6 +1,6 @@
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AppState,
   StyleProp,
@@ -78,18 +78,11 @@ function CameraScreen() {
     };
   }, []);
 
-  if (!hasPermission) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Camera permission is required.</Text>
-      </View>
-    );
-  }
-
-  const handleDetectedFaces = Worklets.createRunOnJS(
+  const handleDetectedFacesCallback = useCallback(
     (faces: Face[], frameWidth: number, frameHeight: number) => {
+      if (!device) return;
       const isPortraitSensor = ["portrait", "portrait-upside-down"].includes(
-        device!.sensorOrientation,
+        device.sensorOrientation,
       );
       // console.log("faces detected", faces);
       // console.log("frame dimensions", { frameWidth, frameHeight });
@@ -120,6 +113,12 @@ function CameraScreen() {
 
       setFacesDetected(facesRemapped);
     },
+    [device],
+  );
+
+  const handleDetectedFaces = useMemo(
+    () => Worklets.createRunOnJS(handleDetectedFacesCallback),
+    [handleDetectedFacesCallback],
   );
 
   const takePhoto = async () => {
@@ -148,16 +147,19 @@ function CameraScreen() {
   const frameProcessor = useFrameProcessor(
     (frame) => {
       "worklet";
-      runAsync(frame, () => {
-        "worklet";
-        const faces = detectFaces(frame);
-        handleDetectedFaces(faces, frame.width, frame.height);
-      });
-      // ... chain frame processors
-      // ... do something with frame
+      const faces = detectFaces(frame);
+      handleDetectedFaces(faces, frame.width, frame.height);
     },
-    [handleDetectedFaces],
+    [detectFaces, handleDetectedFaces],
   );
+
+  if (!hasPermission) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Camera permission is required.</Text>
+      </View>
+    );
+  }
 
   const renderOverlay = () => {
     if (!facesDetected.length) return <></>;
@@ -228,6 +230,7 @@ function CameraScreen() {
       };
       return (
         <Animated.View
+          key={i}
           style={{
             transform: [
               {
@@ -284,7 +287,7 @@ const styles = StyleSheet.create({
     zIndex: 100,
     backgroundColor: "white",
     borderWidth: 4,
-    borderColor: "rgba(240, 12, 195, 0.5)",
+    borderColor: "rgba(195, 255, 0, 0.5)",
   },
 });
 

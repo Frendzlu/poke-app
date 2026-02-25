@@ -171,15 +171,15 @@ export default class Utils {
     const filename = `pokemon_ar_${Date.now()}.png`;
     const file = new File(directory, filename);
 
-    // Decode base64 → binary and write as bytes so the saved file is a valid PNG
+    // Decode base64 → binary and write as bytes so the saved file is a valid PNG.
+    // Use file.write() (synchronous) instead of writableStream() — the stream
+    // API doesn't guarantee the file is flushed before createAssetAsync runs.
     const binaryString = atob(base64Data);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
-    const writer = file.writableStream().getWriter();
-    await writer.write(bytes);
-    await writer.close();
+    file.write(bytes);
 
     const asset = await MediaLibrary.createAssetAsync(file.uri);
     await MediaLibrary.createAlbumAsync("PokemonAR", asset, false);
